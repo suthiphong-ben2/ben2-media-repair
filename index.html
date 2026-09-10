@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>แจ้งซ่อมอุปกรณ์สื่อ — โรงเรียนเบญจมราชรังสฤษฎิ์ ๒</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1A2421; --muted:#5F6B66; --paper:#EFF2EF; --surface:#fff;
+    --line:#D6DDD8; --primary:#0F5C55; --primary-dark:#0A423D;
+    --wait:#B4620A; --doing:#1B5FA8; --hold:#6B4E9E; --done:#1F7A5C; --cancel:#767C79;
+    --danger:#A32B26;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font-family:'Anuphan',system-ui,sans-serif;font-size:16px;line-height:1.55}
+  .wrap{max-width:640px;margin:0 auto;padding:0 16px 64px}
+
+  header{background:var(--primary);color:#fff;padding:22px 0 20px;margin-bottom:20px}
+  header .wrap{padding-bottom:0}
+  header h1{font-size:21px;font-weight:600;margin:0 0 2px}
+  header p{margin:0;font-size:14px;opacity:.85}
+  .who{margin-top:12px;font-size:13px;opacity:.9;display:flex;justify-content:space-between;gap:8px;align-items:center}
+  .who button{background:transparent;border:1px solid rgba(255,255,255,.5);color:#fff;
+              padding:4px 10px;font-size:13px;font-weight:500;border-radius:999px}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:16px}
+  h2{font-size:16px;font-weight:600;margin:0 0 14px}
+
+  label{display:block;font-size:14px;font-weight:500;margin:14px 0 6px}
+  .field:first-child label{margin-top:0}
+  .hint{font-weight:400;color:var(--muted);font-size:13px}
+  input[type=text],input[type=tel],select,textarea{
+    width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;
+    font-family:inherit;font-size:16px;background:#fff;color:var(--ink)}
+  textarea{min-height:96px;resize:vertical}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--primary);outline-offset:1px;border-color:var(--primary)}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{position:relative}
+  .chip input{position:absolute;opacity:0;width:0;height:0}
+  .chip span{display:block;padding:8px 14px;border:1px solid var(--line);border-radius:999px;
+             cursor:pointer;font-size:14px;background:#fff;user-select:none}
+  .chip input:checked + span{background:var(--primary);border-color:var(--primary);color:#fff}
+  .chip input:focus-visible + span{outline:2px solid var(--primary);outline-offset:2px}
+  .chip.broken span::after{content:' • เคยแจ้งชำรุด';color:var(--danger);font-size:12px}
+  .chip.broken input:checked + span::after{color:#FFD9D6}
+
+  .radios{display:flex;flex-direction:column;gap:8px}
+  .radios label{display:flex;gap:10px;align-items:flex-start;margin:0;font-weight:400;font-size:15px}
+  .radios input{margin-top:5px;flex:none}
+
+  button{font-family:inherit;font-size:16px;font-weight:600;border-radius:8px;cursor:pointer;border:1px solid transparent}
+  .btn-primary{background:var(--primary);color:#fff;padding:13px 20px;width:100%}
+  .btn-primary:hover{background:var(--primary-dark)}
+  .btn-primary:disabled{background:var(--cancel);cursor:progress}
+
+  .msg{padding:12px 14px;border-radius:8px;margin-bottom:16px;font-size:15px}
+  .msg.ok{background:#E4F1EB;border:1px solid #A9CFBE;color:#12503A}
+  .msg.err{background:#FBE9E7;border:1px solid #E4B2AE;color:var(--danger)}
+
+  .ticket{border-top:1px solid var(--line);padding:14px 0}
+  .ticket:first-of-type{border-top:0;padding-top:0}
+  .ticket .top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+  .ticket .id{font-weight:600;font-size:14px}
+  .ticket .room{font-size:15px;margin:2px 0}
+  .ticket .meta{font-size:13px;color:var(--muted)}
+  .badge{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;color:#fff;white-space:nowrap}
+  .b-wait{background:var(--wait)} .b-doing{background:var(--doing)} .b-hold{background:var(--hold)}
+  .b-done{background:var(--done)} .b-cancel{background:var(--cancel)}
+  .empty,.loading{color:var(--muted);font-size:15px}
+  #preview{max-width:100%;border-radius:8px;margin-top:10px;display:none}
+
+  .gate{position:fixed;inset:0;background:rgba(26,36,33,.55);display:flex;align-items:center;
+        justify-content:center;padding:20px;z-index:9}
+  .gate .box{background:#fff;border-radius:12px;padding:22px;max-width:420px;width:100%}
+  .gate h2{margin-bottom:6px}
+  .gate p{margin:0 0 14px;font-size:14px;color:var(--muted)}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>แจ้งซ่อมอุปกรณ์สื่อ</h1>
+    <p>ห้องเรียนและห้องปฏิบัติการ โรงเรียนเบญจมราชรังสฤษฎิ์ ๒</p>
+    <div class="who"><span id="who"></span><button id="switchBtn" class="hidden" onclick="openGate()">เปลี่ยนชื่อ</button></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="alert"></div>
+
+  <div class="card">
+    <h2>แจ้งอุปกรณ์ที่มีปัญหา</h2>
+
+    <div class="field">
+      <label for="filter">ค้นหาห้อง <span class="hint">พิมพ์เลขห้องหรือชื่อห้อง</span></label>
+      <input type="text" id="filter" placeholder="เช่น 234 หรือ LAB เคมี" oninput="filterRooms()">
+    </div>
+
+    <label for="room">เลือกห้อง</label>
+    <select id="room" onchange="onRoomChange()"><option value="">กำลังโหลดรายชื่อห้อง…</option></select>
+
+    <label>อุปกรณ์ที่มีปัญหา <span class="hint">เลือกได้มากกว่าหนึ่งรายการ</span></label>
+    <div class="chips" id="items"></div>
+
+    <label>ความเร่งด่วน</label>
+    <div class="radios">
+      <label><input type="radio" name="sev" value="ใช้งานไม่ได้เลย" checked><span>ใช้งานไม่ได้เลย — กระทบการสอนทันที</span></label>
+      <label><input type="radio" name="sev" value="ใช้ได้บ้าง"><span>ใช้ได้บ้างไม่ได้บ้าง — ยังพอสอนได้</span></label>
+      <label><input type="radio" name="sev" value="เสื่อมสภาพ"><span>เสื่อมสภาพ — ควรตรวจเช็ค</span></label>
+    </div>
+
+    <label for="detail">อาการที่พบ</label>
+    <textarea id="detail" placeholder="เช่น เครื่องเสียงมีไฟเข้าแต่ลำโพงไม่ดัง ลองสลับสายแล้วยังเงียบ"></textarea>
+
+    <label for="photo">รูปประกอบ <span class="hint">ไม่บังคับ ถ่ายจากมือถือได้เลย</span></label>
+    <input type="file" id="photo" accept="image/*" onchange="previewPhoto()">
+    <img id="preview" alt="รูปที่แนบ">
+
+    <label for="phone">เบอร์ติดต่อ <span class="hint">ไม่บังคับ ช่วยให้ช่างนัดเวลาเข้าห้องได้</span></label>
+    <input type="tel" id="phone" placeholder="08x-xxx-xxxx">
+
+    <div style="margin-top:20px"><button class="btn-primary" id="submitBtn" onclick="submit()">ส่งแจ้งซ่อม</button></div>
+  </div>
+
+  <div class="card">
+    <h2>งานที่ฉันแจ้งไว้</h2>
+    <div id="mine" class="loading">กำลังโหลด…</div>
+  </div>
+</div>
+
+<!-- เลือกชื่อผู้แจ้งครั้งแรก -->
+<div class="gate hidden" id="gate">
+  <div class="box">
+    <h2>คุณคือใคร</h2>
+    <p>เลือกชื่อไว้ครั้งเดียว เครื่องนี้จะจำไว้ให้ ครั้งต่อไปเข้ามาแจ้งได้ทันที</p>
+    <select id="teacherSelect"></select>
+    <div id="teacherFreeWrap" class="hidden" style="margin-top:10px">
+      <input type="text" id="teacherFree" placeholder="พิมพ์ชื่อ-สกุล">
+    </div>
+    <div style="margin-top:16px"><button class="btn-primary" onclick="saveTeacher()">ใช้ชื่อนี้</button></div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+  var ROOMS = [], TEACHERS = [], EQUIP = [], PHOTO = null;
+  var ME = localStorage.getItem('ben2_repair_teacher') || '';
+
+  // ---------- เรียก API ----------
+  function apiGet(action, params, done, fail){
+    var cb = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+    var qs = ['action=' + encodeURIComponent(action), 'callback=' + cb];
+    Object.keys(params || {}).forEach(function(k){ qs.push(k + '=' + encodeURIComponent(params[k])); });
+    var s = document.createElement('script');
+    var timer = setTimeout(function(){ cleanup(); fail && fail(new Error('เชื่อมต่อไม่สำเร็จ ลองใหม่อีกครั้ง')); }, 20000);
+    function cleanup(){ clearTimeout(timer); delete window[cb]; s.remove(); }
+    window[cb] = function(res){
+      cleanup();
+      res.ok ? done(res.data) : (fail && fail(new Error(res.error)));
+    };
+    s.src = API_URL + '?' + qs.join('&');
+    s.onerror = function(){ cleanup(); fail && fail(new Error('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้')); };
+    document.body.appendChild(s);
+  }
+
+  function apiPost(body, done, fail){
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(body)
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(res){ res.ok ? done(res.data) : fail(new Error(res.error)); })
+    .catch(function(e){ fail(e); });
+  }
+
+  // ---------- เริ่มทำงาน ----------
+  apiGet('bootstrap', {}, function(d){
+    ROOMS = d.rooms; TEACHERS = d.teachers; EQUIP = d.equipment;
+    filterRooms(); renderChips(null); fillTeachers();
+    if (!ME) openGate(); else showMe();
+  }, fail);
+
+  function fillTeachers(){
+    var sel = document.getElementById('teacherSelect');
+    if (!TEACHERS.length) {
+      sel.classList.add('hidden');
+      document.getElementById('teacherFreeWrap').classList.remove('hidden');
+      return;
+    }
+    sel.innerHTML = '<option value="">— เลือกชื่อของคุณ —</option>' +
+      TEACHERS.map(function(t){
+        return '<option value="' + t.name + '"' + (t.name === ME ? ' selected' : '') + '>' +
+               t.name + (t.group ? ' (' + t.group + ')' : '') + '</option>';
+      }).join('') + '<option value="__other">ไม่มีชื่อในรายการ — พิมพ์เอง</option>';
+    sel.onchange = function(){
+      document.getElementById('teacherFreeWrap').classList.toggle('hidden', sel.value !== '__other');
+    };
+  }
+
+  function openGate(){ document.getElementById('gate').classList.remove('hidden'); }
+
+  function saveTeacher(){
+    var sel = document.getElementById('teacherSelect');
+    var name = (!TEACHERS.length || sel.value === '__other')
+      ? document.getElementById('teacherFree').value.trim() : sel.value;
+    if (!name) return alert('กรุณาเลือกหรือพิมพ์ชื่อของคุณ');
+    ME = name;
+    localStorage.setItem('ben2_repair_teacher', name);
+    document.getElementById('gate').classList.add('hidden');
+    showMe();
+  }
+
+  function showMe(){
+    document.getElementById('who').textContent = 'แจ้งในนาม ' + ME;
+    document.getElementById('switchBtn').classList.remove('hidden');
+    loadMine();
+  }
+
+  // ---------- ห้องและอุปกรณ์ ----------
+  function filterRooms(){
+    var q = document.getElementById('filter').value.trim().toLowerCase();
+    var sel = document.getElementById('room');
+    var list = ROOMS.filter(function(r){
+      return !q || (r.code + ' ' + r.name).toLowerCase().indexOf(q) !== -1;
+    });
+    sel.innerHTML = '<option value="">— เลือกห้อง —</option>' + list.map(function(r){
+      return '<option value="' + r.code + '|' + r.name + '">' + (r.code ? r.code + ' — ' : '') + r.name + '</option>';
+    }).join('');
+    if (list.length === 1) { sel.selectedIndex = 1; onRoomChange(); }
+  }
+
+  function currentRoom(){
+    var v = document.getElementById('room').value;
+    if (!v) return null;
+    var p = v.split('|');
+    return ROOMS.filter(function(r){ return r.code === p[0] && r.name === p[1]; })[0] || { code: p[0], name: p[1], has: {} };
+  }
+
+  function onRoomChange(){ renderChips(currentRoom()); }
+
+  function renderChips(room){
+    document.getElementById('items').innerHTML = EQUIP.map(function(e, i){
+      var state = room && room.has ? room.has[e] : '';
+      if (state === 'ไม่มี' && e !== 'อื่น ๆ') return '';
+      var broken = (state === 'ชำรุด') ? ' broken' : '';
+      return '<label class="chip' + broken + '"><input type="checkbox" value="' + e + '"><span>' + e + '</span></label>';
+    }).join('');
+  }
+
+  // ---------- รูป ----------
+  function previewPhoto(){
+    var f = document.getElementById('photo').files[0];
+    if (!f) { PHOTO = null; document.getElementById('preview').style.display = 'none'; return; }
+    var img = new Image(), reader = new FileReader();
+    reader.onload = function(ev){
+      img.onload = function(){
+        var max = 1280, scale = Math.min(1, max / Math.max(img.width, img.height));
+        var c = document.createElement('canvas');
+        c.width = img.width * scale; c.height = img.height * scale;
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        var dataUrl = c.toDataURL('image/jpeg', 0.8);
+        PHOTO = { name: 'photo.jpg', mimeType: 'image/jpeg', data: dataUrl.split(',')[1] };
+        var p = document.getElementById('preview');
+        p.src = dataUrl; p.style.display = 'block';
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(f);
+  }
+
+  // ---------- ส่งแจ้งซ่อม ----------
+  function submit(){
+    if (!ME) return openGate();
+    var room = currentRoom();
+    var items = Array.prototype.slice.call(document.querySelectorAll('#items input:checked')).map(function(i){ return i.value; });
+    var detail = document.getElementById('detail').value.trim();
+
+    if (!room) return alert('กรุณาเลือกห้อง');
+    if (!items.length) return alert('กรุณาเลือกอุปกรณ์ที่มีปัญหาอย่างน้อยหนึ่งรายการ');
+    if (!detail) return alert('กรุณาอธิบายอาการที่พบ');
+
+    var btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'กำลังส่ง…';
+
+    apiPost({
+      action: 'submit',
+      roomCode: room.code, roomName: room.name, items: items,
+      severity: document.querySelector('input[name=sev]:checked').value,
+      detail: detail, photo: PHOTO,
+      reporterName: ME,
+      phone: document.getElementById('phone').value.trim()
+    }, function(d){
+      showAlert('ok', 'ส่งแจ้งซ่อมแล้ว เลขที่งาน ' + d.id + ' — ระบบแจ้งครูผู้ดูแลทาง LINE เรียบร้อย');
+      document.getElementById('detail').value = '';
+      document.getElementById('photo').value = '';
+      document.getElementById('preview').style.display = 'none';
+      PHOTO = null;
+      document.querySelectorAll('#items input:checked').forEach(function(i){ i.checked = false; });
+      btn.disabled = false; btn.textContent = 'ส่งแจ้งซ่อม';
+      loadMine();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, function(err){
+      showAlert('err', err.message || 'ส่งไม่สำเร็จ ลองอีกครั้ง');
+      btn.disabled = false; btn.textContent = 'ส่งแจ้งซ่อม';
+    });
+  }
+
+  // ---------- งานที่ฉันแจ้ง ----------
+  function loadMine(){
+    apiGet('myTickets', { teacher: ME }, renderMine, function(err){
+      document.getElementById('mine').textContent = err.message;
+    });
+  }
+
+  function badgeClass(s){
+    return s === 'เสร็จสิ้น' ? 'b-done' : s === 'กำลังดำเนินการ' ? 'b-doing'
+         : s === 'ยกเลิก' ? 'b-cancel' : s.indexOf('อะไหล่') !== -1 ? 'b-hold' : 'b-wait';
+  }
+
+  function renderMine(list){
+    var box = document.getElementById('mine');
+    box.className = '';
+    if (!list.length) { box.innerHTML = '<p class="empty">ยังไม่มีรายการที่คุณแจ้ง เมื่อแจ้งแล้วจะติดตามสถานะได้ที่นี่</p>'; return; }
+    box.innerHTML = list.map(function(t){
+      return '<div class="ticket">' +
+        '<div class="top"><span class="id">' + t.id + '</span>' +
+        '<span class="badge ' + badgeClass(t.status) + '">' + t.status + '</span></div>' +
+        '<div class="room">ห้อง ' + (t.roomCode ? t.roomCode + ' ' : '') + t.roomName + ' — ' + t.items + '</div>' +
+        '<div class="meta">แจ้งเมื่อ ' + t.reportedAt +
+        (t.assignee ? ' • ผู้รับผิดชอบ ' + t.assignee : '') +
+        (t.note ? '<br>บันทึกจากช่าง: ' + t.note : '') + '</div></div>';
+    }).join('');
+  }
+
+  function showAlert(type, text){
+    document.getElementById('alert').innerHTML = '<div class="msg ' + type + '">' + text + '</div>';
+  }
+  function fail(err){ showAlert('err', err.message || String(err)); }
+
+  // รองรับลิงก์ QR เช่น index.html?room=234 → เลือกห้องให้อัตโนมัติ
+  (function(){
+    var m = location.search.match(/[?&]room=([^&]+)/);
+    if (m) document.getElementById('filter').value = decodeURIComponent(m[1]);
+  })();
+</script>
+</body>
+</html>

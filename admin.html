@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>คิวงานซ่อมอุปกรณ์สื่อ — บ.ษ.๒</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1A2421; --muted:#5F6B66; --paper:#EFF2EF; --surface:#fff;
+    --line:#D6DDD8; --primary:#0F5C55; --primary-dark:#0A423D;
+    --wait:#B4620A; --doing:#1B5FA8; --hold:#6B4E9E; --done:#1F7A5C; --cancel:#767C79;
+    --danger:#A32B26;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font-family:'Anuphan',system-ui,sans-serif;font-size:16px;line-height:1.55}
+  .wrap{max-width:900px;margin:0 auto;padding:0 16px 64px}
+  header{background:var(--primary);color:#fff;padding:22px 0 20px;margin-bottom:20px}
+  header .wrap{padding-bottom:0}
+  header h1{font-size:21px;font-weight:600;margin:0}
+  header p{margin:2px 0 0;font-size:14px;opacity:.85}
+  header a{color:#fff}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .stat b{display:block;font-size:26px;font-weight:600;line-height:1.2}
+  .stat span{font-size:13px;color:var(--muted)}
+
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .toolbar input,.toolbar select{padding:9px 12px;border:1px solid var(--line);border-radius:8px;
+       font-family:inherit;font-size:15px;background:#fff}
+  .toolbar input{flex:1;min-width:180px}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:12px}
+  .head{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .id{font-weight:600}
+  .room{font-size:17px;font-weight:600;margin:4px 0 2px}
+  .detail{margin:6px 0}
+  .meta{font-size:13px;color:var(--muted)}
+  .badge{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;color:#fff;white-space:nowrap}
+  .b-wait{background:var(--wait)} .b-doing{background:var(--doing)} .b-hold{background:var(--hold)}
+  .b-done{background:var(--done)} .b-cancel{background:var(--cancel)}
+  .sev{font-weight:600;color:var(--wait)}
+
+  .edit{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);
+        display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .edit select,.edit input{padding:9px 11px;border:1px solid var(--line);border-radius:8px;
+        font-family:inherit;font-size:15px;width:100%;background:#fff}
+  .edit .full{grid-column:1 / -1}
+  button{font-family:inherit;font-weight:600;border-radius:8px;cursor:pointer;border:1px solid transparent;
+        background:var(--primary);color:#fff;padding:10px 18px;font-size:15px}
+  button:hover{background:var(--primary-dark)}
+  button:disabled{background:var(--cancel);cursor:progress}
+  a.photo{font-size:14px}
+  .empty,.loading{color:var(--muted)}
+  .msg{padding:12px 14px;border-radius:8px;margin-bottom:14px;background:#E4F1EB;border:1px solid #A9CFBE;color:#12503A}
+  .msg.err{background:#FBE9E7;border-color:#E4B2AE;color:var(--danger)}
+
+  .gate{position:fixed;inset:0;background:var(--paper);display:flex;align-items:center;justify-content:center;padding:20px;z-index:9}
+  .gate .box{background:#fff;border:1px solid var(--line);border-radius:12px;padding:24px;max-width:380px;width:100%}
+  .gate h2{margin:0 0 6px;font-size:18px}
+  .gate p{margin:0 0 14px;font-size:14px;color:var(--muted)}
+  .gate input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;
+              font-family:inherit;font-size:16px;margin-bottom:12px}
+  .gate button{width:100%}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <div class="box">
+    <h2>คิวงานซ่อมอุปกรณ์สื่อ</h2>
+    <p>หน้านี้สำหรับครูผู้ดูแลงานโสตทัศนูปกรณ์ กรอกรหัสเพื่อเข้าใช้งาน</p>
+    <input type="password" id="pin" placeholder="รหัสผู้ดูแล" onkeydown="if(event.key==='Enter')login()">
+    <button onclick="login()" id="loginBtn">เข้าสู่ระบบ</button>
+    <p id="gateErr" style="color:var(--danger);margin-top:10px"></p>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <header>
+    <div class="wrap">
+      <h1>คิวงานซ่อมอุปกรณ์สื่อ</h1>
+      <p><a href="index.html">ไปหน้าแจ้งซ่อม</a></p>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div id="alert"></div>
+    <div class="stats" id="stats"></div>
+
+    <div class="toolbar">
+      <input type="text" id="q" placeholder="ค้นหาเลขห้อง ชื่อห้อง อุปกรณ์ หรือผู้แจ้ง" oninput="render()">
+      <select id="fyear" onchange="load()"></select>
+      <select id="fstatus" onchange="render()">
+        <option value="open">เฉพาะงานค้าง</option>
+        <option value="">ทั้งหมด</option>
+      </select>
+    </div>
+
+    <div id="list" class="loading">กำลังโหลดคิวงาน…</div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+  var TICKETS = [], STATUSES = [], PIN = sessionStorage.getItem('ben2_repair_pin') || '';
+
+  function apiPost(body, done, fail){
+    body.pin = PIN;
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(body)
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(res){ res.ok ? done(res.data) : fail(new Error(res.error)); })
+    .catch(fail);
+  }
+
+  function apiGet(action, params, done, fail){
+    var cb = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+    var qs = ['action=' + encodeURIComponent(action), 'callback=' + cb];
+    Object.keys(params || {}).forEach(function(k){ qs.push(k + '=' + encodeURIComponent(params[k])); });
+    var s = document.createElement('script');
+    window[cb] = function(res){ delete window[cb]; s.remove(); res.ok ? done(res.data) : fail(new Error(res.error)); };
+    s.src = API_URL + '?' + qs.join('&');
+    document.body.appendChild(s);
+  }
+
+  if (PIN) login(true);
+
+  function login(silent){
+    if (!silent) {
+      PIN = document.getElementById('pin').value.trim();
+      if (!PIN) return;
+      document.getElementById('loginBtn').disabled = true;
+    }
+    apiPost({ action: 'checkPin' }, function(){
+      sessionStorage.setItem('ben2_repair_pin', PIN);
+      document.getElementById('gate').classList.add('hidden');
+      document.getElementById('app').classList.remove('hidden');
+      apiGet('bootstrap', {}, function(d){
+        STATUSES = d.statuses;
+        document.getElementById('fyear').innerHTML =
+          d.years.map(function(y){
+            return '<option value="' + y + '"' + (y === String(d.currentYear) ? ' selected' : '') + '>' +
+                   'ปีการศึกษา ' + y + '</option>';
+          }).join('') + '<option value="">ทุกปีการศึกษา</option>';
+        load();
+      }, function(){});
+    }, function(err){
+      sessionStorage.removeItem('ben2_repair_pin');
+      document.getElementById('loginBtn').disabled = false;
+      if (!silent) document.getElementById('gateErr').textContent = err.message;
+    });
+  }
+
+  function load(){
+    var year = document.getElementById('fyear').value;
+    apiPost({ action: 'listAll', year: year }, function(list){ TICKETS = list; render(); },
+      function(e){ document.getElementById('list').textContent = e.message; });
+    apiPost({ action: 'summary', year: year }, renderStats, function(){});
+  }
+
+  function renderStats(s){
+    document.getElementById('stats').innerHTML =
+      stat(s.open, 'งานค้างทั้งหมด') +
+      stat(s.byStatus['รอดำเนินการ'] || 0, 'รอดำเนินการ') +
+      stat(s.byStatus['กำลังดำเนินการ'] || 0, 'กำลังดำเนินการ') +
+      stat(s.byStatus['เสร็จสิ้น'] || 0, 'ซ่อมเสร็จแล้ว') +
+      (s.topRooms.length ? '<div class="stat"><b style="font-size:15px">' +
+        s.topRooms.map(function(r){ return r.room + ' (' + r.count + ')'; }).join('<br>') +
+        '</b><span>ห้องที่แจ้งบ่อยที่สุด</span></div>' : '');
+  }
+  function stat(n, label){ return '<div class="stat"><b>' + n + '</b><span>' + label + '</span></div>'; }
+
+  function badgeClass(s){
+    return s === 'เสร็จสิ้น' ? 'b-done' : s === 'กำลังดำเนินการ' ? 'b-doing'
+         : s === 'ยกเลิก' ? 'b-cancel' : s.indexOf('อะไหล่') !== -1 ? 'b-hold' : 'b-wait';
+  }
+
+  function render(){
+    var q = document.getElementById('q').value.trim().toLowerCase();
+    var mode = document.getElementById('fstatus').value;
+    var list = TICKETS.filter(function(t){
+      if (mode === 'open' && (t.status === 'เสร็จสิ้น' || t.status === 'ยกเลิก')) return false;
+      if (!q) return true;
+      return (t.id + ' ' + t.roomCode + ' ' + t.roomName + ' ' + t.items + ' ' +
+              t.detail + ' ' + t.reporterName).toLowerCase().indexOf(q) !== -1;
+    });
+
+    var box = document.getElementById('list');
+    box.className = '';
+    if (!list.length) { box.innerHTML = '<p class="empty">ไม่มีงานตรงกับเงื่อนไขนี้</p>'; return; }
+
+    box.innerHTML = list.map(function(t){
+      var opts = STATUSES.map(function(s){
+        return '<option value="' + s + '"' + (s === t.status ? ' selected' : '') + '>' + s + '</option>';
+      }).join('');
+      return '<div class="card">' +
+        '<div class="head"><span class="id">' + t.id + '</span>' +
+        '<span class="badge ' + badgeClass(t.status) + '">' + t.status + '</span></div>' +
+        '<div class="room">ห้อง ' + (t.roomCode ? t.roomCode + ' ' : '') + t.roomName + '</div>' +
+        '<div class="meta">' + t.items + ' • <span class="sev">' + t.severity + '</span></div>' +
+        '<p class="detail">' + t.detail + '</p>' +
+        (t.photoUrl ? '<a class="photo" href="' + t.photoUrl + '" target="_blank" rel="noopener">ดูรูปที่แนบมา</a><br>' : '') +
+        '<div class="meta">แจ้งโดย ' + t.reporterName + (t.phone ? ' (' + t.phone + ')' : '') + ' • ' + t.reportedAt + '</div>' +
+        '<div class="edit">' +
+          '<select id="st-' + t.id + '">' + opts + '</select>' +
+          '<input type="text" id="as-' + t.id + '" placeholder="ผู้รับผิดชอบ" value="' + (t.assignee || '') + '">' +
+          '<input class="full" type="text" id="nt-' + t.id + '" placeholder="บันทึกการซ่อม เช่น เปลี่ยนสาย HDMI แล้ว" value="' + (t.note || '') + '">' +
+          '<div class="full"><button onclick="save(\'' + t.id + '\', this)">บันทึกการอัปเดต</button></div>' +
+        '</div></div>';
+    }).join('');
+  }
+
+  function save(id, btn){
+    btn.disabled = true; btn.textContent = 'กำลังบันทึก…';
+    apiPost({
+      action: 'update', id: id,
+      status: document.getElementById('st-' + id).value,
+      assignee: document.getElementById('as-' + id).value,
+      note: document.getElementById('nt-' + id).value
+    }, function(){
+      document.getElementById('alert').innerHTML = '<div class="msg">อัปเดตงาน ' + id + ' แล้ว และแจ้งเข้า LINE เรียบร้อย</div>';
+      load();
+    }, function(e){
+      document.getElementById('alert').innerHTML = '<div class="msg err">' + e.message + '</div>';
+      btn.disabled = false; btn.textContent = 'บันทึกการอัปเดต';
+    });
+  }
+</script>
+</body>
+</html>
