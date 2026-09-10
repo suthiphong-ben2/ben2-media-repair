@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>คิวงานซ่อมอุปกรณ์สื่อ — บ.ษ.๒</title>
+<title>คิวงานซ่อมอุปกรณ์สื่อ — บ.ฉ.๒</title>
 <link rel="icon" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -198,12 +198,17 @@
         STATUSES = d.statuses;
         BUILDINGS = d.buildings || [];
         PHOTOS = {};
-        BUILDINGS.forEach(function(b){ if (b.caretaker) PHOTOS[b.caretaker] = b.photo || ''; });
-        (d.rooms || []).forEach(function(r){ if (r.caretaker) PHOTOS[r.caretaker] = r.caretakerPhoto || ''; });
+        BUILDINGS.forEach(function(b){
+          (b.caretakers || []).forEach(function(c){ PHOTOS[c.name] = c.photo || ''; });
+        });
+        (d.rooms || []).forEach(function(r){
+          (r.caretakers || []).forEach(function(c){ PHOTOS[c.name] = c.photo || ''; });
+        });
         document.getElementById('fbuilding').innerHTML = '<option value="">ทุกอาคาร</option>' +
           BUILDINGS.map(function(b){
+            var care = (b.caretakers || []).map(function(c){ return c.name; }).join(', ');
             return '<option value="' + b.code + '">' + (b.name || 'อาคาร ' + b.code) +
-                   (b.caretaker ? ' — ' + b.caretaker : '') + '</option>';
+                   (care ? ' — ' + care : '') + '</option>';
           }).join('');
         document.getElementById('fyear').innerHTML =
           d.years.map(function(y){
@@ -286,14 +291,18 @@
     }).join('');
   }
 
-  function ownerBlock(name){
-    if (!name) return '';
-    var photo = PHOTOS[name] || '';
-    var avatar = photo
-      ? '<img src="' + photo + '" alt="" onerror="this.outerHTML=\'<div class=&quot;ph&quot;>' + name.charAt(0) + '</div>\'">'
-      : '<div class="ph">' + name.charAt(0) + '</div>';
-    return '<div class="owner">' + avatar +
-           '<div><div class="role">ผู้รับผิดชอบ</div><div class="nm">' + name + '</div></div></div>';
+  function ownerBlock(names){
+    if (!names) return '';
+    return String(names).split(',').map(function(raw){
+      var name = raw.trim();
+      if (!name) return '';
+      var photo = PHOTOS[name] || '';
+      var avatar = photo
+        ? '<img src="' + photo + '" alt="" onerror="this.outerHTML=\'<div class=&quot;ph&quot;>' + name.charAt(0) + '</div>\'">'
+        : '<div class="ph">' + name.charAt(0) + '</div>';
+      return '<div class="owner">' + avatar +
+             '<div><div class="role">ผู้รับผิดชอบ</div><div class="nm">' + name + '</div></div></div>';
+    }).join('');
   }
 
   function save(id, btn){
