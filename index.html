@@ -4,90 +4,132 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>แจ้งซ่อมอุปกรณ์สื่อ — โรงเรียนเบญจมราชรังสฤษฎิ์ ๒</title>
+<link rel="icon" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#1A2421; --muted:#5F6B66; --paper:#EFF2EF; --surface:#fff;
-    --line:#D6DDD8; --primary:#0F5C55; --primary-dark:#0A423D;
-    --wait:#B4620A; --doing:#1B5FA8; --hold:#6B4E9E; --done:#1F7A5C; --cancel:#767C79;
-    --danger:#A32B26;
+    --navy:#0B2A5B; --navy-deep:#071D40; --blue:#1A4FB4; --blue-dark:#123A87;
+    --gold:#FFC426; --gold-deep:#D19700;
+    --ink:#15203A; --muted:#5C6782; --paper:#F3F6FC; --surface:#fff;
+    --line:#DCE3F2;
+    --doing:#1A4FB4; --hold:#6B4E9E; --done:#127A55; --cancel:#79839B; --danger:#B3261E;
+    --radius:14px;
   }
   *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
   body{margin:0;background:var(--paper);color:var(--ink);
-       font-family:'Anuphan',system-ui,sans-serif;font-size:16px;line-height:1.55}
-  .wrap{max-width:640px;margin:0 auto;padding:0 16px 64px}
+       font-family:'Anuphan',system-ui,sans-serif;font-size:16px;line-height:1.6}
+  .wrap{max-width:660px;margin:0 auto;padding:0 18px 72px}
 
-  header{background:var(--primary);color:#fff;padding:22px 0 20px;margin-bottom:20px}
+  /* ---------- หัวเว็บ ---------- */
+  header{background:linear-gradient(160deg,var(--navy) 0%,var(--navy-deep) 100%);
+         color:#fff;border-bottom:4px solid var(--gold);padding:24px 0 22px;margin-bottom:22px}
   header .wrap{padding-bottom:0}
-  header h1{font-size:21px;font-weight:600;margin:0 0 2px}
-  header p{margin:0;font-size:14px;opacity:.85}
-  .who{margin-top:12px;font-size:13px;opacity:.9;display:flex;justify-content:space-between;gap:8px;align-items:center}
-  .who button{background:transparent;border:1px solid rgba(255,255,255,.5);color:#fff;
-              padding:4px 10px;font-size:13px;font-weight:500;border-radius:999px}
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand img{width:54px;height:54px;object-fit:contain;flex:none}
+  .brand h1{font-size:23px;font-weight:700;margin:0;letter-spacing:-.01em;line-height:1.25}
+  .brand p{margin:2px 0 0;font-size:14px;color:#BFD0EE}
+  .who{margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.16);
+       font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;color:#DCE7FA}
+  .who b{color:#fff;font-weight:600}
+  .who button{background:transparent;border:1px solid rgba(255,255,255,.45);color:#fff;
+              padding:5px 12px;font-size:13px;font-weight:500;border-radius:999px}
+  .who button:hover{background:rgba(255,255,255,.12)}
 
-  .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:16px}
-  h2{font-size:16px;font-weight:600;margin:0 0 14px}
+  /* ---------- การ์ด ---------- */
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+        padding:22px;margin-bottom:18px;box-shadow:0 1px 2px rgba(11,42,91,.05)}
+  h2{font-size:18px;font-weight:600;margin:0 0 4px}
+  .rule{width:34px;height:3px;background:var(--gold);border-radius:2px;margin-bottom:18px}
 
-  label{display:block;font-size:14px;font-weight:500;margin:14px 0 6px}
+  label{display:block;font-size:14px;font-weight:600;margin:18px 0 7px}
   .field:first-child label{margin-top:0}
   .hint{font-weight:400;color:var(--muted);font-size:13px}
   input[type=text],input[type=tel],select,textarea{
-    width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;
+    width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:10px;
     font-family:inherit;font-size:16px;background:#fff;color:var(--ink)}
-  textarea{min-height:96px;resize:vertical}
-  input:focus,select:focus,textarea:focus{outline:2px solid var(--primary);outline-offset:1px;border-color:var(--primary)}
+  textarea{min-height:100px;resize:vertical}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);
+    box-shadow:0 0 0 3px rgba(26,79,180,.15)}
+  input[type=file]{font-size:14px;color:var(--muted)}
 
-  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  /* ---------- ชิปอุปกรณ์ ---------- */
+  .chips{display:flex;flex-wrap:wrap;gap:9px}
   .chip{position:relative}
   .chip input{position:absolute;opacity:0;width:0;height:0}
-  .chip span{display:block;padding:8px 14px;border:1px solid var(--line);border-radius:999px;
-             cursor:pointer;font-size:14px;background:#fff;user-select:none}
-  .chip input:checked + span{background:var(--primary);border-color:var(--primary);color:#fff}
-  .chip input:focus-visible + span{outline:2px solid var(--primary);outline-offset:2px}
+  .chip span{display:block;padding:9px 15px;border:1px solid var(--line);border-radius:999px;
+             cursor:pointer;font-size:15px;background:#fff;user-select:none;transition:background .12s}
+  .chip span:hover{border-color:var(--blue)}
+  .chip input:checked + span{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:500}
+  .chip input:focus-visible + span{outline:2px solid var(--blue);outline-offset:2px}
   .chip.broken span::after{content:' • เคยแจ้งชำรุด';color:var(--danger);font-size:12px}
-  .chip.broken input:checked + span::after{color:#FFD9D6}
+  .chip.broken input:checked + span::after{color:#FFD3CF}
 
-  .radios{display:flex;flex-direction:column;gap:8px}
-  .radios label{display:flex;gap:10px;align-items:flex-start;margin:0;font-weight:400;font-size:15px}
-  .radios input{margin-top:5px;flex:none}
+  /* ---------- ความเร่งด่วน ---------- */
+  .sev{display:flex;flex-direction:column;gap:9px}
+  .sev label{margin:0;font-weight:400;font-size:15px;display:flex;gap:12px;align-items:flex-start;
+             border:1px solid var(--line);border-left:4px solid var(--line);border-radius:10px;
+             padding:12px 14px;cursor:pointer;background:#fff}
+  .sev input{margin-top:5px;flex:none;accent-color:var(--blue)}
+  .sev label:has(input:checked){border-left-color:var(--gold);background:#FFFBEC;border-color:#F0DFAE}
+  .sev label:has(input:focus-visible){outline:2px solid var(--blue);outline-offset:2px}
+  .sev b{display:block;font-weight:600}
+  .sev small{color:var(--muted);font-size:13px}
 
-  button{font-family:inherit;font-size:16px;font-weight:600;border-radius:8px;cursor:pointer;border:1px solid transparent}
-  .btn-primary{background:var(--primary);color:#fff;padding:13px 20px;width:100%}
-  .btn-primary:hover{background:var(--primary-dark)}
+  /* ---------- ปุ่ม ---------- */
+  button{font-family:inherit;font-size:16px;font-weight:600;border-radius:10px;cursor:pointer;border:1px solid transparent}
+  .btn-primary{background:var(--blue);color:#fff;padding:15px 20px;width:100%;font-size:17px}
+  .btn-primary:hover{background:var(--blue-dark)}
   .btn-primary:disabled{background:var(--cancel);cursor:progress}
 
-  .msg{padding:12px 14px;border-radius:8px;margin-bottom:16px;font-size:15px}
-  .msg.ok{background:#E4F1EB;border:1px solid #A9CFBE;color:#12503A}
-  .msg.err{background:#FBE9E7;border:1px solid #E4B2AE;color:var(--danger)}
+  /* ---------- ข้อความแจ้ง ---------- */
+  .msg{padding:14px 16px;border-radius:12px;margin-bottom:18px;font-size:15px;border:1px solid}
+  .msg.ok{background:#EAF6F0;border-color:#A6D5BE;color:#0D5C3F}
+  .msg.err{background:#FDECEA;border-color:#EFB6B0;color:var(--danger)}
 
-  .ticket{border-top:1px solid var(--line);padding:14px 0}
-  .ticket:first-of-type{border-top:0;padding-top:0}
+  /* ---------- รายการงาน ---------- */
+  .ticket{border-top:1px solid var(--line);padding:16px 0}
+  .ticket:first-of-type{border-top:0;padding-top:2px}
   .ticket .top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
-  .ticket .id{font-weight:600;font-size:14px}
-  .ticket .room{font-size:15px;margin:2px 0}
+  .ticket .id{font-weight:700;font-size:14px;color:var(--navy)}
+  .ticket .room{font-size:16px;font-weight:500;margin:3px 0}
   .ticket .meta{font-size:13px;color:var(--muted)}
-  .badge{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;color:#fff;white-space:nowrap}
-  .b-wait{background:var(--wait)} .b-doing{background:var(--doing)} .b-hold{background:var(--hold)}
-  .b-done{background:var(--done)} .b-cancel{background:var(--cancel)}
+  .badge{font-size:12px;font-weight:700;padding:4px 11px;border-radius:999px;color:#fff;white-space:nowrap}
+  .b-wait{background:var(--gold);color:#4A3600} .b-doing{background:var(--doing)}
+  .b-hold{background:var(--hold)} .b-done{background:var(--done)} .b-cancel{background:var(--cancel)}
   .empty,.loading{color:var(--muted);font-size:15px}
-  #preview{max-width:100%;border-radius:8px;margin-top:10px;display:none}
+  #preview{max-width:100%;border-radius:10px;margin-top:12px;display:none;border:1px solid var(--line)}
 
-  .gate{position:fixed;inset:0;background:rgba(26,36,33,.55);display:flex;align-items:center;
+  /* ---------- เลือกชื่อผู้แจ้ง ---------- */
+  .gate{position:fixed;inset:0;background:rgba(7,29,64,.6);display:flex;align-items:center;
         justify-content:center;padding:20px;z-index:9}
-  .gate .box{background:#fff;border-radius:12px;padding:22px;max-width:420px;width:100%}
+  .gate .box{background:#fff;border-radius:16px;padding:26px;max-width:430px;width:100%;
+             border-top:5px solid var(--gold)}
   .gate h2{margin-bottom:6px}
-  .gate p{margin:0 0 14px;font-size:14px;color:var(--muted)}
+  .gate p{margin:0 0 16px;font-size:14px;color:var(--muted)}
   .hidden{display:none}
+
+  @media (max-width:420px){
+    .brand h1{font-size:20px}
+    .brand img{width:46px;height:46px}
+    .card{padding:18px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 
 <header>
   <div class="wrap">
-    <h1>แจ้งซ่อมอุปกรณ์สื่อ</h1>
-    <p>ห้องเรียนและห้องปฏิบัติการ โรงเรียนเบญจมราชรังสฤษฎิ์ ๒</p>
+    <div class="brand">
+      <img src="logo.png" alt="" onerror="this.style.display='none'">
+      <div>
+        <h1>แจ้งซ่อมอุปกรณ์สื่อ</h1>
+        <p>ห้องเรียนและห้องปฏิบัติการ โรงเรียนเบญจมราชรังสฤษฎิ์ ๒</p>
+      </div>
+    </div>
     <div class="who"><span id="who"></span><button id="switchBtn" class="hidden" onclick="openGate()">เปลี่ยนชื่อ</button></div>
   </div>
 </header>
@@ -97,6 +139,7 @@
 
   <div class="card">
     <h2>แจ้งอุปกรณ์ที่มีปัญหา</h2>
+    <div class="rule"></div>
 
     <div class="field">
       <label for="filter">ค้นหาห้อง <span class="hint">พิมพ์เลขห้องหรือชื่อห้อง</span></label>
@@ -110,10 +153,13 @@
     <div class="chips" id="items"></div>
 
     <label>ความเร่งด่วน</label>
-    <div class="radios">
-      <label><input type="radio" name="sev" value="ใช้งานไม่ได้เลย" checked><span>ใช้งานไม่ได้เลย — กระทบการสอนทันที</span></label>
-      <label><input type="radio" name="sev" value="ใช้ได้บ้าง"><span>ใช้ได้บ้างไม่ได้บ้าง — ยังพอสอนได้</span></label>
-      <label><input type="radio" name="sev" value="เสื่อมสภาพ"><span>เสื่อมสภาพ — ควรตรวจเช็ค</span></label>
+    <div class="sev">
+      <label><input type="radio" name="sev" value="ใช้งานไม่ได้เลย" checked>
+        <span><b>ใช้งานไม่ได้เลย</b><small>กระทบการสอนทันที</small></span></label>
+      <label><input type="radio" name="sev" value="ใช้ได้บ้าง">
+        <span><b>ใช้ได้บ้างไม่ได้บ้าง</b><small>ยังพอสอนได้</small></span></label>
+      <label><input type="radio" name="sev" value="เสื่อมสภาพ">
+        <span><b>เสื่อมสภาพ</b><small>ยังใช้ได้ แต่ควรตรวจเช็ค</small></span></label>
     </div>
 
     <label for="detail">อาการที่พบ</label>
@@ -126,16 +172,16 @@
     <label for="phone">เบอร์ติดต่อ <span class="hint">ไม่บังคับ ช่วยให้ช่างนัดเวลาเข้าห้องได้</span></label>
     <input type="tel" id="phone" placeholder="08x-xxx-xxxx">
 
-    <div style="margin-top:20px"><button class="btn-primary" id="submitBtn" onclick="submit()">ส่งแจ้งซ่อม</button></div>
+    <div style="margin-top:24px"><button class="btn-primary" id="submitBtn" onclick="submit()">ส่งแจ้งซ่อม</button></div>
   </div>
 
   <div class="card">
     <h2>งานที่ฉันแจ้งไว้</h2>
+    <div class="rule"></div>
     <div id="mine" class="loading">กำลังโหลด…</div>
   </div>
 </div>
 
-<!-- เลือกชื่อผู้แจ้งครั้งแรก -->
 <div class="gate hidden" id="gate">
   <div class="box">
     <h2>คุณคือใคร</h2>
@@ -144,7 +190,7 @@
     <div id="teacherFreeWrap" class="hidden" style="margin-top:10px">
       <input type="text" id="teacherFree" placeholder="พิมพ์ชื่อ-สกุล">
     </div>
-    <div style="margin-top:16px"><button class="btn-primary" onclick="saveTeacher()">ใช้ชื่อนี้</button></div>
+    <div style="margin-top:18px"><button class="btn-primary" onclick="saveTeacher()">ใช้ชื่อนี้</button></div>
   </div>
 </div>
 
@@ -153,7 +199,6 @@
   var ROOMS = [], TEACHERS = [], EQUIP = [], PHOTO = null;
   var ME = localStorage.getItem('ben2_repair_teacher') || '';
 
-  // ---------- เรียก API ----------
   function apiGet(action, params, done, fail){
     var cb = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
     var qs = ['action=' + encodeURIComponent(action), 'callback=' + cb];
@@ -161,10 +206,7 @@
     var s = document.createElement('script');
     var timer = setTimeout(function(){ cleanup(); fail && fail(new Error('เชื่อมต่อไม่สำเร็จ ลองใหม่อีกครั้ง')); }, 20000);
     function cleanup(){ clearTimeout(timer); delete window[cb]; s.remove(); }
-    window[cb] = function(res){
-      cleanup();
-      res.ok ? done(res.data) : (fail && fail(new Error(res.error)));
-    };
+    window[cb] = function(res){ cleanup(); res.ok ? done(res.data) : (fail && fail(new Error(res.error))); };
     s.src = API_URL + '?' + qs.join('&');
     s.onerror = function(){ cleanup(); fail && fail(new Error('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้')); };
     document.body.appendChild(s);
@@ -181,7 +223,6 @@
     .catch(function(e){ fail(e); });
   }
 
-  // ---------- เริ่มทำงาน ----------
   apiGet('bootstrap', {}, function(d){
     ROOMS = d.rooms; TEACHERS = d.teachers; EQUIP = d.equipment;
     filterRooms(); renderChips(null); fillTeachers();
@@ -219,12 +260,11 @@
   }
 
   function showMe(){
-    document.getElementById('who').textContent = 'แจ้งในนาม ' + ME;
+    document.getElementById('who').innerHTML = 'แจ้งในนาม <b>' + ME + '</b>';
     document.getElementById('switchBtn').classList.remove('hidden');
     loadMine();
   }
 
-  // ---------- ห้องและอุปกรณ์ ----------
   function filterRooms(){
     var q = document.getElementById('filter').value.trim().toLowerCase();
     var sel = document.getElementById('room');
@@ -247,7 +287,7 @@
   function onRoomChange(){ renderChips(currentRoom()); }
 
   function renderChips(room){
-    document.getElementById('items').innerHTML = EQUIP.map(function(e, i){
+    document.getElementById('items').innerHTML = EQUIP.map(function(e){
       var state = room && room.has ? room.has[e] : '';
       if (state === 'ไม่มี' && e !== 'อื่น ๆ') return '';
       var broken = (state === 'ชำรุด') ? ' broken' : '';
@@ -255,7 +295,6 @@
     }).join('');
   }
 
-  // ---------- รูป ----------
   function previewPhoto(){
     var f = document.getElementById('photo').files[0];
     if (!f) { PHOTO = null; document.getElementById('preview').style.display = 'none'; return; }
@@ -276,7 +315,6 @@
     reader.readAsDataURL(f);
   }
 
-  // ---------- ส่งแจ้งซ่อม ----------
   function submit(){
     if (!ME) return openGate();
     var room = currentRoom();
@@ -313,7 +351,6 @@
     });
   }
 
-  // ---------- งานที่ฉันแจ้ง ----------
   function loadMine(){
     apiGet('myTickets', { teacher: ME }, renderMine, function(err){
       document.getElementById('mine').textContent = err.message;
@@ -345,7 +382,6 @@
   }
   function fail(err){ showAlert('err', err.message || String(err)); }
 
-  // รองรับลิงก์ QR เช่น index.html?room=234 → เลือกห้องให้อัตโนมัติ
   (function(){
     var m = location.search.match(/[?&]room=([^&]+)/);
     if (m) document.getElementById('filter').value = decodeURIComponent(m[1]);
