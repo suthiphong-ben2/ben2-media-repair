@@ -34,9 +34,12 @@
   .who{margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.16);
        font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;color:#DCE7FA}
   .who b{color:#fff;font-weight:600}
-  .who button{background:transparent;border:1px solid rgba(255,255,255,.45);color:#fff;
-              padding:5px 12px;font-size:13px;font-weight:500;border-radius:999px}
-  .who button:hover{background:rgba(255,255,255,.12)}
+  .who button,.who a.hdr{background:transparent;border:1px solid rgba(255,255,255,.45);color:#fff;
+              padding:5px 12px;font-size:13px;font-weight:500;border-radius:999px;
+              text-decoration:none;white-space:nowrap;display:inline-block;
+              font-family:inherit;cursor:pointer;line-height:1.6}
+  .who button:hover,.who a.hdr:hover{background:rgba(255,255,255,.12)}
+  .who .actions{display:flex;gap:8px;flex:none}
 
   /* ---------- การ์ด ---------- */
   .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
@@ -134,7 +137,13 @@
         <p>ห้องเรียนและห้องปฏิบัติการ โรงเรียนเบญจมราชรังสฤษฎิ์ ๒</p>
       </div>
     </div>
-    <div class="who"><span id="who"></span><button id="switchBtn" class="hidden" onclick="openGate()">เปลี่ยนชื่อ</button></div>
+    <div class="who">
+      <span id="who"></span>
+      <span class="actions">
+        <button id="switchBtn" class="hidden" onclick="openGate()">เปลี่ยนชื่อ</button>
+        <a class="hdr" href="admin.html">ผู้ดูแลระบบ</a>
+      </span>
+    </div>
   </div>
 </header>
 
