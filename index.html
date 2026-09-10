@@ -312,7 +312,7 @@
     if (!v) return null;
     var p = v.split('|');
     return ROOMS.filter(function(r){ return r.code === p[0] && r.name === p[1]; })[0] ||
-           { code: p[0], name: p[1], building: '', program: '', caretaker: '', caretakerPhoto: '', has: {} };
+           { code: p[0], name: p[1], building: '', program: '', caretakers: [], has: {} };
   }
 
   function buildingOf(code){
@@ -335,14 +335,17 @@
 
     var b = buildingOf(room.building);
     var bname = b ? (b.name || 'อาคาร ' + b.code) : 'อาคาร';
+    var roomCares = room.caretakers || [];
+    var bCares = (b && b.caretakers) ? b.caretakers : [];
     var html = '';
 
-    if (room.caretaker) {
-      html += personBlock(room.caretakerPhoto, room.caretaker,
-                          'ผู้ดูแลห้องนี้' + (room.program ? ' · ' + room.program : ''));
-      if (b && b.caretaker) html += personBlock(b.photo, b.caretaker, 'ผู้ดูแล' + bname);
-    } else if (b && b.caretaker) {
-      html += personBlock(b.photo, b.caretaker, 'ผู้ดูแล' + bname);
+    if (roomCares.length) {
+      html += roomCares.map(function(c){
+        return personBlock(c.photo, c.name, 'ผู้ดูแลห้องนี้' + (room.program ? ' · ' + room.program : ''));
+      }).join('');
+      html += bCares.map(function(c){ return personBlock(c.photo, c.name, 'ผู้ดูแล' + bname); }).join('');
+    } else {
+      html += bCares.map(function(c){ return personBlock(c.photo, c.name, 'ผู้ดูแล' + bname); }).join('');
     }
 
     box.innerHTML = html;
