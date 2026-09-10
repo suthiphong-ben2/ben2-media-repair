@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>จัดการข้อมูลระบบแจ้งซ่อม — บ.ษ.๒</title>
+<link rel="icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0B2A5B; --navy-deep:#071D40; --blue:#1A4FB4; --blue-dark:#123A87;
+    --gold:#FFC426; --ink:#15203A; --muted:#5C6782; --paper:#F3F6FC; --surface:#fff;
+    --line:#DCE3F2; --danger:#B3261E; --done:#127A55;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font-family:'Anuphan',system-ui,sans-serif;font-size:16px;line-height:1.6}
+  .wrap{max-width:940px;margin:0 auto;padding:0 18px 72px}
+
+  header{background:linear-gradient(160deg,var(--navy) 0%,var(--navy-deep) 100%);
+         color:#fff;border-bottom:4px solid var(--gold);padding:24px 0 0}
+  header .wrap{padding-bottom:0}
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand img{width:52px;height:52px;object-fit:contain;flex:none}
+  .brand h1{font-size:23px;font-weight:700;margin:0}
+  .brand p{margin:2px 0 0;font-size:14px;color:#BFD0EE}
+  .brand a{color:#FFDD7A;text-decoration:none;font-weight:500}
+  .brand a:hover{text-decoration:underline}
+
+  .tabs{display:flex;gap:4px;margin-top:20px;overflow-x:auto}
+  .tabs button{background:transparent;border:0;border-bottom:3px solid transparent;color:#BFD0EE;
+               padding:12px 16px;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;
+               white-space:nowrap;border-radius:0}
+  .tabs button.on{color:#fff;border-bottom-color:var(--gold)}
+  .tabs button:hover{color:#fff}
+
+  .panel{display:none;margin-top:22px}
+  .panel.on{display:block}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+        padding:18px 20px;margin-bottom:14px;box-shadow:0 1px 2px rgba(11,42,91,.05)}
+  h2{font-size:17px;font-weight:600;margin:0 0 4px}
+  .lead{font-size:14px;color:var(--muted);margin:0 0 16px}
+
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:13px;font-weight:600;color:var(--muted);padding:0 8px 8px 0}
+  td{padding:0 8px 8px 0;vertical-align:top}
+  input,select{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;
+       font-family:inherit;font-size:15px;background:#fff;color:var(--ink)}
+  input:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,79,180,.15)}
+  td.x{width:44px;padding-right:0}
+
+  button{font-family:inherit;font-weight:600;border-radius:10px;cursor:pointer;border:1px solid transparent;
+        background:var(--blue);color:#fff;padding:11px 20px;font-size:15px}
+  button:hover{background:var(--blue-dark)}
+  button:disabled{background:#9AA5BC;cursor:progress}
+  .ghost{background:#fff;border-color:var(--line);color:var(--navy)}
+  .ghost:hover{background:#F4F7FD;border-color:var(--blue);color:var(--blue)}
+  .del{background:#fff;border:1px solid var(--line);color:var(--danger);padding:8px 12px;font-size:15px;width:100%}
+  .del:hover{background:#FDECEA;border-color:#EFB6B0}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+
+  .search{margin-bottom:14px}
+  .roomrow{display:flex;justify-content:space-between;align-items:center;gap:12px;
+           border-top:1px solid var(--line);padding:12px 0;cursor:pointer}
+  .roomrow:first-child{border-top:0}
+  .roomrow:hover{background:#F7FAFF}
+  .roomrow .nm{font-weight:600}
+  .roomrow .sub{font-size:13px;color:var(--muted)}
+  .roomrow .go{color:var(--blue);font-size:14px;font-weight:600;white-space:nowrap}
+  .off{opacity:.5}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid2 .full{grid-column:1 / -1}
+  label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--muted)}
+
+  .msg{padding:13px 16px;border-radius:12px;margin-bottom:16px;background:#EAF6F0;
+       border:1px solid #A6D5BE;color:#0D5C3F}
+  .msg.err{background:#FDECEA;border-color:#EFB6B0;color:var(--danger)}
+
+  .gate{position:fixed;inset:0;background:linear-gradient(160deg,var(--navy) 0%,var(--navy-deep) 100%);
+        display:flex;align-items:center;justify-content:center;padding:20px;z-index:9}
+  .gate .box{background:#fff;border-radius:16px;padding:28px;max-width:400px;width:100%;
+             border-top:5px solid var(--gold);text-align:center}
+  .gate img{width:64px;height:64px;object-fit:contain;margin-bottom:12px}
+  .gate h2{margin:0 0 6px;font-size:19px}
+  .gate p{margin:0 0 18px;font-size:14px;color:var(--muted)}
+  .gate input{margin-bottom:12px;text-align:center;padding:13px}
+  .gate button{width:100%;padding:14px}
+  .hidden{display:none}
+
+  @media (max-width:600px){
+    .grid2{grid-template-columns:1fr}
+    table.stack thead{display:none}
+    table.stack tr{display:block;border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px}
+    table.stack td{display:block;padding:0 0 10px}
+    table.stack td::before{content:attr(data-l);display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:5px}
+    table.stack td.x{width:auto}
+  }
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <div class="box">
+    <img src="logo.png" alt="" onerror="this.style.display='none'">
+    <h2>จัดการข้อมูลระบบ</h2>
+    <p>ใส่รหัสผู้ดูแลเพื่อแก้ไขอาคาร ห้อง และรายชื่อครู</p>
+    <input type="password" id="pin" placeholder="รหัสผู้ดูแล" onkeydown="if(event.key==='Enter')login()">
+    <button onclick="login()" id="loginBtn">เข้าสู่ระบบ</button>
+    <p id="gateErr" style="color:var(--danger);margin:12px 0 0"></p>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <header>
+    <div class="wrap">
+      <div class="brand">
+        <img src="logo.png" alt="" onerror="this.style.display='none'">
+        <div>
+          <h1>จัดการข้อมูลระบบ</h1>
+          <p><a href="admin.html">คิวงานซ่อม</a> · <a href="index.html">หน้าแจ้งซ่อม</a></p>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="on" onclick="tab('b',this)">อาคารและผู้ดูแล</button>
+        <button onclick="tab('r',this)">ห้องเรียน</button>
+        <button onclick="tab('t',this)">รายชื่อครู</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div id="alert"></div>
+
+    <!-- อาคาร -->
+    <div class="panel on" id="p-b">
+      <div class="card">
+        <h2>อาคารและครูผู้ดูแล</h2>
+        <p class="lead">อาคารที่มีครูดูแลหลายคน ให้กดเพิ่มแถวแล้วใส่รหัสอาคารเดิมซ้ำ ชื่ออาคารกรอกแค่แถวแรกก็พอ</p>
+        <table class="stack">
+          <thead><tr><th style="width:110px">รหัสอาคาร</th><th>ชื่ออาคาร</th><th>ครูผู้ดูแล</th><th>รูป (ลิงก์หรือชื่อไฟล์)</th><th></th></tr></thead>
+          <tbody id="bbody"></tbody>
+        </table>
+        <div class="actions">
+          <button class="ghost" onclick="addB()">เพิ่มแถว</button>
+          <button onclick="saveB(this)">บันทึกอาคาร</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ห้อง -->
+    <div class="panel" id="p-r">
+      <div class="card">
+        <h2>ห้องเรียนและห้องปฏิบัติการ</h2>
+        <p class="lead">แตะที่ห้องเพื่อแก้ไขอุปกรณ์ ผู้ดูแล และสถานะการใช้งาน</p>
+        <div class="search"><input type="text" id="rq" placeholder="ค้นหาเลขห้องหรือชื่อห้อง" oninput="renderRooms()"></div>
+        <div id="rlist"></div>
+        <div class="actions"><button class="ghost" onclick="editRoom(null)">เพิ่มห้องใหม่</button></div>
+      </div>
+
+      <div class="card hidden" id="reditor">
+        <h2 id="rtitle">แก้ไขห้อง</h2>
+        <p class="lead">ช่องผู้ดูแลห้องใช้กับห้องพิเศษที่มีครูโครงการดูแลอยู่แล้ว หลายคนให้คั่นด้วยจุลภาค</p>
+        <div class="grid2">
+          <div><label for="f-code">เลขห้อง</label><input type="text" id="f-code"></div>
+          <div><label for="f-name">ชื่อห้อง</label><input type="text" id="f-name"></div>
+          <div><label for="f-building">รหัสอาคาร</label><input type="text" id="f-building" placeholder="เช่น 2"></div>
+          <div><label for="f-active">สถานะ</label>
+            <select id="f-active"><option>ใช้งาน</option><option>ปิดใช้งาน</option></select></div>
+
+          <div><label for="f-projector">โปรเจคเตอร์</label><select id="f-projector"></select></div>
+          <div><label for="f-screen">จอรับภาพ</label><select id="f-screen"></select></div>
+          <div><label for="f-amplifier">เครื่องเสียง</label><select id="f-amplifier"></select></div>
+          <div><label for="f-speaker">ลำโพง</label><select id="f-speaker"></select></div>
+          <div><label for="f-hdmi">สายสัญญาณภาพ (HDMI)</label><select id="f-hdmi"></select></div>
+
+          <div><label for="f-program">โครงการ / ห้องพิเศษ</label><input type="text" id="f-program" placeholder="เช่น SMTE"></div>
+          <div><label for="f-caretaker">ครูผู้ดูแลห้องนี้</label><input type="text" id="f-caretaker" placeholder="ครูก, ครูข"></div>
+          <div><label for="f-photo">รูปผู้ดูแลห้อง</label><input type="text" id="f-photo" placeholder="a.jpg, b.jpg"></div>
+        </div>
+        <div class="actions">
+          <button onclick="saveRoom(this)">บันทึกห้อง</button>
+          <button class="ghost" onclick="closeEditor()">ยกเลิก</button>
+          <button class="del hidden" id="rdel" style="width:auto" onclick="delRoom(this)">ลบห้องนี้</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ครู -->
+    <div class="panel" id="p-t">
+      <div class="card">
+        <h2>รายชื่อครู</h2>
+        <p class="lead">รายชื่อนี้จะขึ้นให้ครูเลือกตอนแจ้งซ่อม ถ้าปล่อยว่างไว้ ระบบจะให้พิมพ์ชื่อเองแทน</p>
+        <table class="stack">
+          <thead><tr><th>ชื่อ-สกุล</th><th>กลุ่มสาระ / ฝ่าย</th><th></th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="actions">
+          <button class="ghost" onclick="addT()">เพิ่มแถว</button>
+          <button onclick="saveT(this)">บันทึกรายชื่อ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+  var PIN = sessionStorage.getItem('ben2_repair_pin') || '';
+  var ROOMS = [], EQUIP_STATE = ['มี', 'ชำรุด', 'ไม่มี'], EDITING = null;
+
+  function api(body, done, fail){
+    body.pin = PIN;
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(body)
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(res){ res.ok ? done(res.data) : fail(new Error(res.error)); })
+    .catch(fail);
+  }
+
+  if (PIN) login(true);
+
+  function login(silent){
+    if (!silent) {
+      PIN = document.getElementById('pin').value.trim();
+      if (!PIN) return;
+      document.getElementById('loginBtn').disabled = true;
+    }
+    api({ action: 'adminData' }, function(d){
+      sessionStorage.setItem('ben2_repair_pin', PIN);
+      document.getElementById('gate').classList.add('hidden');
+      document.getElementById('app').classList.remove('hidden');
+      fillData(d);
+    }, function(err){
+      sessionStorage.removeItem('ben2_repair_pin');
+      document.getElementById('loginBtn').disabled = false;
+      if (!silent) document.getElementById('gateErr').textContent = err.message;
+    });
+  }
+
+  function fillData(d){
+    ROOMS = d.rooms || [];
+    renderRooms();
+    document.getElementById('bbody').innerHTML = '';
+    (d.buildings || []).forEach(function(r){ addB(r); });
+    if (!(d.buildings || []).length) addB();
+    document.getElementById('tbody').innerHTML = '';
+    (d.teachers || []).forEach(function(r){ addT(r); });
+    if (!(d.teachers || []).length) addT();
+    ['projector','screen','amplifier','speaker','hdmi'].forEach(function(k){
+      document.getElementById('f-' + k).innerHTML =
+        EQUIP_STATE.map(function(s){ return '<option>' + s + '</option>'; }).join('');
+    });
+  }
+
+  function tab(k, btn){
+    ['b','r','t'].forEach(function(x){ document.getElementById('p-' + x).classList.toggle('on', x === k); });
+    Array.prototype.forEach.call(btn.parentNode.children, function(b){ b.classList.toggle('on', b === btn); });
+    say('');
+  }
+
+  function say(text, isErr){
+    document.getElementById('alert').innerHTML = text
+      ? '<div class="msg' + (isErr ? ' err' : '') + '">' + text + '</div>' : '';
+    if (text) window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ---------- อาคาร ----------
+  function addB(r){
+    r = r || ['', '', '', ''];
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td data-l="รหัสอาคาร"><input value="' + esc(r[0]) + '" placeholder="2"></td>' +
+      '<td data-l="ชื่ออาคาร"><input value="' + esc(r[1]) + '" placeholder="อาคาร 2"></td>' +
+      '<td data-l="ครูผู้ดูแล"><input value="' + esc(r[2]) + '"></td>' +
+      '<td data-l="รูป"><input value="' + esc(r[3]) + '" placeholder="somchai.jpg"></td>' +
+      '<td class="x"><button class="del" onclick="this.closest(\'tr\').remove()">ลบ</button></td>';
+    document.getElementById('bbody').appendChild(tr);
+  }
+
+  function saveB(btn){
+    var rows = grab('bbody', 4);
+    btn.disabled = true; btn.textContent = 'กำลังบันทึก…';
+    api({ action: 'saveBuildings', rows: rows }, function(d){
+      btn.disabled = false; btn.textContent = 'บันทึกอาคาร';
+      say('บันทึกอาคารแล้ว ' + d.count + ' แถว');
+    }, function(e){
+      btn.disabled = false; btn.textContent = 'บันทึกอาคาร';
+      say(e.message, true);
+    });
+  }
+
+  // ---------- ครู ----------
+  function addT(r){
+    r = r || ['', ''];
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td data-l="ชื่อ-สกุล"><input value="' + esc(r[0]) + '"></td>' +
+      '<td data-l="กลุ่มสาระ / ฝ่าย"><input value="' + esc(r[1]) + '"></td>' +
+      '<td class="x"><button class="del" onclick="this.closest(\'tr\').remove()">ลบ</button></td>';
+    document.getElementById('tbody').appendChild(tr);
+  }
+
+  function saveT(btn){
+    var rows = grab('tbody', 2);
+    btn.disabled = true; btn.textContent = 'กำลังบันทึก…';
+    api({ action: 'saveTeachers', rows: rows }, function(d){
+      btn.disabled = false; btn.textContent = 'บันทึกรายชื่อ';
+      say('บันทึกรายชื่อครูแล้ว ' + d.count + ' คน');
+    }, function(e){
+      btn.disabled = false; btn.textContent = 'บันทึกรายชื่อ';
+      say(e.message, true);
+    });
+  }
+
+  function grab(bodyId, cols){
+    return Array.prototype.map.call(document.getElementById(bodyId).children, function(tr){
+      return Array.prototype.slice.call(tr.querySelectorAll('input'), 0, cols).map(function(i){ return i.value.trim(); });
+    });
+  }
+
+  // ---------- ห้อง ----------
+  function renderRooms(){
+    var q = (document.getElementById('rq').value || '').trim().toLowerCase();
+    var list = ROOMS.filter(function(r){
+      return !q || (r.code + ' ' + r.name).toLowerCase().indexOf(q) !== -1;
+    });
+    document.getElementById('rlist').innerHTML = list.length
+      ? list.map(function(r){
+          var broken = ['projector','screen','amplifier','speaker','hdmi']
+            .filter(function(k){ return r[k] === 'ชำรุด'; }).length;
+          return '<div class="roomrow' + (r.active === 'ปิดใช้งาน' ? ' off' : '') + '" onclick="editRoom(' + r.row + ')">' +
+            '<div><div class="nm">' + (r.code ? r.code + ' — ' : '') + esc(r.name) + '</div>' +
+            '<div class="sub">อาคาร ' + (r.building || '-') +
+              (r.program ? ' · ' + esc(r.program) : '') +
+              (r.caretaker ? ' · ' + esc(r.caretaker) : '') +
+              (broken ? ' · ชำรุด ' + broken + ' รายการ' : '') + '</div></div>' +
+            '<span class="go">แก้ไข</span></div>';
+        }).join('')
+      : '<p class="lead">ไม่พบห้องที่ค้นหา</p>';
+  }
+
+  function editRoom(row){
+    var r = row ? ROOMS.filter(function(x){ return x.row === row; })[0] : null;
+    EDITING = r ? r.row : null;
+    document.getElementById('rtitle').textContent = r ? 'แก้ไขห้อง ' + (r.code || r.name) : 'เพิ่มห้องใหม่';
+    document.getElementById('rdel').classList.toggle('hidden', !r);
+
+    var v = r || { code:'', name:'', building:'', projector:'ไม่มี', screen:'ไม่มี', amplifier:'ไม่มี',
+                   speaker:'ไม่มี', hdmi:'ไม่มี', program:'', caretaker:'', photo:'', active:'ใช้งาน' };
+    ['code','name','building','program','caretaker','photo'].forEach(function(k){
+      document.getElementById('f-' + k).value = v[k] || '';
+    });
+    ['projector','screen','amplifier','speaker','hdmi','active'].forEach(function(k){
+      document.getElementById('f-' + k).value = v[k] || 'ไม่มี';
+    });
+
+    var ed = document.getElementById('reditor');
+    ed.classList.remove('hidden');
+    ed.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function closeEditor(){
+    document.getElementById('reditor').classList.add('hidden');
+    EDITING = null;
+  }
+
+  function saveRoom(btn){
+    var room = { row: EDITING };
+    ['code','name','building','program','caretaker','photo',
+     'projector','screen','amplifier','speaker','hdmi','active'].forEach(function(k){
+      room[k] = document.getElementById('f-' + k).value.trim();
+    });
+    if (!room.code && !room.name) return say('ต้องมีเลขห้องหรือชื่อห้องอย่างน้อยหนึ่งอย่าง', true);
+
+    btn.disabled = true; btn.textContent = 'กำลังบันทึก…';
+    api({ action: 'saveRoom', room: room }, function(){
+      btn.disabled = false; btn.textContent = 'บันทึกห้อง';
+      closeEditor();
+      reload('บันทึกห้อง ' + (room.code || room.name) + ' แล้ว');
+    }, function(e){
+      btn.disabled = false; btn.textContent = 'บันทึกห้อง';
+      say(e.message, true);
+    });
+  }
+
+  function delRoom(btn){
+    if (!EDITING) return;
+    if (!confirm('ลบห้องนี้ออกจากทะเบียนถาวร ใบแจ้งซ่อมเก่าของห้องนี้ยังอยู่ครบ ยืนยันหรือไม่')) return;
+    btn.disabled = true;
+    api({ action: 'deleteRoom', row: EDITING }, function(){
+      btn.disabled = false;
+      closeEditor();
+      reload('ลบห้องแล้ว');
+    }, function(e){ btn.disabled = false; say(e.message, true); });
+  }
+
+  function reload(message){
+    api({ action: 'adminData' }, function(d){
+      ROOMS = d.rooms || [];
+      renderRooms();
+      say(message);
+    }, function(e){ say(e.message, true); });
+  }
+
+  function esc(s){
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+</script>
+</body>
+</html>
