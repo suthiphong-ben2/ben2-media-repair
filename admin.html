@@ -95,6 +95,14 @@
          text-align:center;font-size:13px;color:var(--muted);line-height:1.8}
   footer b{display:block;font-weight:600;color:var(--ink);font-size:14px}
 
+  .owner{display:flex;align-items:center;gap:9px;margin:10px 0 2px}
+  .owner img{width:34px;height:34px;border-radius:50%;object-fit:cover;flex:none;
+             border:2px solid var(--gold);background:#E8EDF7}
+  .owner .ph{width:34px;height:34px;border-radius:50%;flex:none;background:var(--navy);color:#fff;
+             display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px}
+  .owner .nm{font-size:14px;font-weight:600}
+  .owner .role{font-size:12px;color:var(--muted)}
+
   @media (max-width:520px){ .edit{grid-template-columns:1fr} }
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -131,6 +139,7 @@
 
     <div class="toolbar">
       <input type="text" id="q" placeholder="ค้นหาเลขห้อง ชื่อห้อง อุปกรณ์ หรือผู้แจ้ง" oninput="render()">
+      <select id="fbuilding" onchange="render()"><option value="">ทุกอาคาร</option></select>
       <select id="fyear" onchange="load()"></select>
       <select id="fstatus" onchange="render()">
         <option value="open">เฉพาะงานค้าง</option>
@@ -149,7 +158,7 @@
 
 <script src="config.js"></script>
 <script>
-  var TICKETS = [], STATUSES = [], PIN = sessionStorage.getItem('ben2_repair_pin') || '';
+  var TICKETS = [], STATUSES = [], BUILDINGS = [], PHOTOS = {}, PIN = sessionStorage.getItem('ben2_repair_pin') || '';
 
   function apiPost(body, done, fail){
     body.pin = PIN;
@@ -187,6 +196,15 @@
       document.getElementById('app').classList.remove('hidden');
       apiGet('bootstrap', {}, function(d){
         STATUSES = d.statuses;
+        BUILDINGS = d.buildings || [];
+        PHOTOS = {};
+        BUILDINGS.forEach(function(b){ if (b.caretaker) PHOTOS[b.caretaker] = b.photo || ''; });
+        (d.rooms || []).forEach(function(r){ if (r.caretaker) PHOTOS[r.caretaker] = r.caretakerPhoto || ''; });
+        document.getElementById('fbuilding').innerHTML = '<option value="">ทุกอาคาร</option>' +
+          BUILDINGS.map(function(b){
+            return '<option value="' + b.code + '">' + (b.name || 'อาคาร ' + b.code) +
+                   (b.caretaker ? ' — ' + b.caretaker : '') + '</option>';
+          }).join('');
         document.getElementById('fyear').innerHTML =
           d.years.map(function(y){
             return '<option value="' + y + '"' + (y === String(d.currentYear) ? ' selected' : '') + '>' +
@@ -214,9 +232,11 @@
       stat(s.byStatus['รอดำเนินการ'] || 0, 'รอดำเนินการ') +
       stat(s.byStatus['กำลังดำเนินการ'] || 0, 'กำลังดำเนินการ') +
       stat(s.byStatus['เสร็จสิ้น'] || 0, 'ซ่อมเสร็จแล้ว') +
-      (s.topRooms.length ? '<div class="stat rooms"><b>' +
-        s.topRooms.map(function(r){ return 'ห้อง ' + r.room + ' — ' + r.count + ' ครั้ง'; }).join('<br>') +
-        '</b><span>ห้องที่แจ้งบ่อยที่สุด</span></div>' : '');
+      (s.openByBuilding && s.openByBuilding.length ? '<div class="stat rooms"><b>' +
+        s.openByBuilding.map(function(b){
+          return (b.name || 'อาคาร ' + b.building) + ' — ' + b.count + ' งาน' +
+                 (b.caretaker ? ' (' + b.caretaker + ')' : '');
+        }).join('<br>') + '</b><span>งานค้างแยกตามอาคาร</span></div>' : '');
   }
   function stat(n, label){ return '<div class="stat"><b>' + n + '</b><span>' + label + '</span></div>'; }
 
@@ -228,7 +248,9 @@
   function render(){
     var q = document.getElementById('q').value.trim().toLowerCase();
     var mode = document.getElementById('fstatus').value;
+    var bld = document.getElementById('fbuilding').value;
     var list = TICKETS.filter(function(t){
+      if (bld && String(t.building) !== bld) return false;
       if (mode === 'open' && (t.status === 'เสร็จสิ้น' || t.status === 'ยกเลิก')) return false;
       if (!q) return true;
       return (t.id + ' ' + t.roomCode + ' ' + t.roomName + ' ' + t.items + ' ' +
@@ -244,14 +266,17 @@
         return '<option value="' + s + '"' + (s === t.status ? ' selected' : '') + '>' + s + '</option>';
       }).join('');
       var urgent = (t.severity === 'ใช้งานไม่ได้เลย' && t.status === 'รอดำเนินการ') ? ' urgent' : '';
+      var b = BUILDINGS.filter(function(x){ return x.code === String(t.building); })[0];
+      var bname = b ? (b.name || 'อาคาร ' + b.code) : '';
       return '<div class="card' + urgent + '">' +
         '<div class="head"><span class="id">' + t.id + '</span>' +
         '<span class="badge ' + badgeClass(t.status) + '">' + t.status + '</span></div>' +
-        '<div class="room">ห้อง ' + (t.roomCode ? t.roomCode + ' ' : '') + t.roomName + '</div>' +
+        '<div class="room">' + (bname ? bname + ' · ' : '') + 'ห้อง ' + (t.roomCode ? t.roomCode + ' ' : '') + t.roomName + '</div>' +
         '<div class="meta">' + t.items + ' • <span class="sevtag">' + t.severity + '</span></div>' +
         '<p class="detail">' + t.detail + '</p>' +
         (t.photoUrl ? '<a class="photo" href="' + t.photoUrl + '" target="_blank" rel="noopener">ดูรูปที่แนบมา</a><br>' : '') +
         '<div class="meta">แจ้งโดย ' + t.reporterName + (t.phone ? ' (' + t.phone + ')' : '') + ' • ' + t.reportedAt + '</div>' +
+        ownerBlock(t.assignee) +
         '<div class="edit">' +
           '<select id="st-' + t.id + '">' + opts + '</select>' +
           '<input type="text" id="as-' + t.id + '" placeholder="ผู้รับผิดชอบ" value="' + (t.assignee || '') + '">' +
@@ -259,6 +284,16 @@
           '<div class="full"><button onclick="save(\'' + t.id + '\', this)">บันทึกการอัปเดต</button></div>' +
         '</div></div>';
     }).join('');
+  }
+
+  function ownerBlock(name){
+    if (!name) return '';
+    var photo = PHOTOS[name] || '';
+    var avatar = photo
+      ? '<img src="' + photo + '" alt="" onerror="this.outerHTML=\'<div class=&quot;ph&quot;>' + name.charAt(0) + '</div>\'">'
+      : '<div class="ph">' + name.charAt(0) + '</div>';
+    return '<div class="owner">' + avatar +
+           '<div><div class="role">ผู้รับผิดชอบ</div><div class="nm">' + name + '</div></div></div>';
   }
 
   function save(id, btn){
