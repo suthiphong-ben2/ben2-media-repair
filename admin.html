@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>คิวงานซ่อมอุปกรณ์สื่อ — บ.ฉ.๒</title>
+<title>คิวงานซ่อมอุปกรณ์สื่อ — บ.ษ.๒</title>
 <link rel="icon" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -173,13 +173,24 @@
   }
 
   function apiGet(action, params, done, fail){
-    var cb = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-    var qs = ['action=' + encodeURIComponent(action), 'callback=' + cb];
+    var qs = ['action=' + encodeURIComponent(action)];
     Object.keys(params || {}).forEach(function(k){ qs.push(k + '=' + encodeURIComponent(params[k])); });
-    var s = document.createElement('script');
-    window[cb] = function(res){ delete window[cb]; s.remove(); res.ok ? done(res.data) : fail(new Error(res.error)); };
-    s.src = API_URL + '?' + qs.join('&');
-    document.body.appendChild(s);
+    var url = API_URL + '?' + qs.join('&');
+
+    fetch(url)
+      .then(function(r){ return r.json(); })
+      .then(function(res){ res.ok ? done(res.data) : fail(new Error(res.error)); })
+      .catch(function(){
+        var cb = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+        var s = document.createElement('script');
+        window[cb] = function(res){
+          delete window[cb]; if (s.parentNode) s.remove();
+          res.ok ? done(res.data) : fail(new Error(res.error));
+        };
+        s.src = url + '&callback=' + cb;
+        s.onerror = function(){ if (s.parentNode) s.remove(); fail(new Error('เชื่อมต่อไม่สำเร็จ')); };
+        document.body.appendChild(s);
+      });
   }
 
   if (PIN) login(true);
