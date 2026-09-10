@@ -58,6 +58,17 @@
     box-shadow:0 0 0 3px rgba(26,79,180,.15)}
   input[type=file]{font-size:14px;color:var(--muted)}
 
+  .care{margin-top:10px;display:none;border:1px solid var(--line);border-radius:12px;
+        padding:12px 14px;background:#FAFCFF}
+  .care .person{display:flex;align-items:center;gap:12px}
+  .care .person + .person{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+  .care img{width:46px;height:46px;border-radius:50%;object-fit:cover;flex:none;
+            border:2px solid var(--gold);background:#E8EDF7}
+  .care .ph{width:46px;height:46px;border-radius:50%;flex:none;background:var(--navy);color:#fff;
+            display:flex;align-items:center;justify-content:center;font-weight:600;font-size:18px}
+  .care .role{font-size:12px;color:var(--muted);line-height:1.4}
+  .care .nm{font-weight:600;font-size:15px}
+
   /* ---------- ชิปอุปกรณ์ ---------- */
   .chips{display:flex;flex-wrap:wrap;gap:9px}
   .chip{position:relative}
@@ -161,6 +172,7 @@
 
     <label for="room">เลือกห้อง</label>
     <select id="room" onchange="onRoomChange()"><option value="">กำลังโหลดรายชื่อห้อง…</option></select>
+    <div class="care" id="care"></div>
 
     <label>อุปกรณ์ที่มีปัญหา <span class="hint">เลือกได้มากกว่าหนึ่งรายการ</span></label>
     <div class="chips" id="items"></div>
@@ -214,7 +226,7 @@
 
 <script src="config.js"></script>
 <script>
-  var ROOMS = [], TEACHERS = [], EQUIP = [], PHOTO = null;
+  var ROOMS = [], TEACHERS = [], EQUIP = [], BUILDINGS = [], PHOTO = null;
   var ME = localStorage.getItem('ben2_repair_teacher') || '';
 
   function apiGet(action, params, done, fail){
@@ -242,7 +254,7 @@
   }
 
   apiGet('bootstrap', {}, function(d){
-    ROOMS = d.rooms; TEACHERS = d.teachers; EQUIP = d.equipment;
+    ROOMS = d.rooms; TEACHERS = d.teachers; EQUIP = d.equipment; BUILDINGS = d.buildings || [];
     filterRooms(); renderChips(null); fillTeachers();
     if (!ME) openGate(); else showMe();
   }, fail);
@@ -299,10 +311,43 @@
     var v = document.getElementById('room').value;
     if (!v) return null;
     var p = v.split('|');
-    return ROOMS.filter(function(r){ return r.code === p[0] && r.name === p[1]; })[0] || { code: p[0], name: p[1], has: {} };
+    return ROOMS.filter(function(r){ return r.code === p[0] && r.name === p[1]; })[0] ||
+           { code: p[0], name: p[1], building: '', program: '', caretaker: '', caretakerPhoto: '', has: {} };
   }
 
-  function onRoomChange(){ renderChips(currentRoom()); }
+  function buildingOf(code){
+    return BUILDINGS.filter(function(b){ return b.code === String(code); })[0] || null;
+  }
+
+  function personBlock(photo, name, role){
+    var avatar = photo
+      ? '<img src="' + photo + '" alt="" onerror="this.outerHTML=\'<div class=&quot;ph&quot;>' + name.charAt(0) + '</div>\'">'
+      : '<div class="ph">' + name.charAt(0) + '</div>';
+    return '<div class="person">' + avatar +
+           '<div><div class="role">' + role + '</div><div class="nm">' + name + '</div></div></div>';
+  }
+
+  function onRoomChange(){
+    var room = currentRoom();
+    renderChips(room);
+    var box = document.getElementById('care');
+    if (!room) { box.style.display = 'none'; return; }
+
+    var b = buildingOf(room.building);
+    var bname = b ? (b.name || 'อาคาร ' + b.code) : 'อาคาร';
+    var html = '';
+
+    if (room.caretaker) {
+      html += personBlock(room.caretakerPhoto, room.caretaker,
+                          'ผู้ดูแลห้องนี้' + (room.program ? ' · ' + room.program : ''));
+      if (b && b.caretaker) html += personBlock(b.photo, b.caretaker, 'ผู้ดูแล' + bname);
+    } else if (b && b.caretaker) {
+      html += personBlock(b.photo, b.caretaker, 'ผู้ดูแล' + bname);
+    }
+
+    box.innerHTML = html;
+    box.style.display = html ? 'block' : 'none';
+  }
 
   function renderChips(room){
     document.getElementById('items').innerHTML = EQUIP.map(function(e){
@@ -348,13 +393,14 @@
 
     apiPost({
       action: 'submit',
-      roomCode: room.code, roomName: room.name, items: items,
+      roomCode: room.code, roomName: room.name, building: room.building, items: items,
       severity: document.querySelector('input[name=sev]:checked').value,
       detail: detail, photo: PHOTO,
       reporterName: ME,
       phone: document.getElementById('phone').value.trim()
     }, function(d){
-      showAlert('ok', 'ส่งแจ้งซ่อมแล้ว เลขที่งาน ' + d.id + ' — ระบบแจ้งครูผู้ดูแลทาง LINE เรียบร้อย');
+      showAlert('ok', 'ส่งแจ้งซ่อมแล้ว เลขที่งาน ' + d.id +
+        (d.caretaker ? ' — ส่งถึง ' + d.caretaker + ' ผู้รับผิดชอบห้องนี้แล้ว' : ' — ระบบแจ้งครูผู้ดูแลทาง LINE เรียบร้อย'));
       document.getElementById('detail').value = '';
       document.getElementById('photo').value = '';
       document.getElementById('preview').style.display = 'none';
