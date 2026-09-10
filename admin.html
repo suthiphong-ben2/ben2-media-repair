@@ -4,88 +4,120 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>คิวงานซ่อมอุปกรณ์สื่อ — บ.ษ.๒</title>
+<link rel="icon" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#1A2421; --muted:#5F6B66; --paper:#EFF2EF; --surface:#fff;
-    --line:#D6DDD8; --primary:#0F5C55; --primary-dark:#0A423D;
-    --wait:#B4620A; --doing:#1B5FA8; --hold:#6B4E9E; --done:#1F7A5C; --cancel:#767C79;
-    --danger:#A32B26;
+    --navy:#0B2A5B; --navy-deep:#071D40; --blue:#1A4FB4; --blue-dark:#123A87;
+    --gold:#FFC426; --gold-deep:#D19700;
+    --ink:#15203A; --muted:#5C6782; --paper:#F3F6FC; --surface:#fff;
+    --line:#DCE3F2;
+    --doing:#1A4FB4; --hold:#6B4E9E; --done:#127A55; --cancel:#79839B; --danger:#B3261E;
+    --radius:14px;
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--paper);color:var(--ink);
-       font-family:'Anuphan',system-ui,sans-serif;font-size:16px;line-height:1.55}
-  .wrap{max-width:900px;margin:0 auto;padding:0 16px 64px}
-  header{background:var(--primary);color:#fff;padding:22px 0 20px;margin-bottom:20px}
+       font-family:'Anuphan',system-ui,sans-serif;font-size:16px;line-height:1.6}
+  .wrap{max-width:940px;margin:0 auto;padding:0 18px 72px}
+
+  header{background:linear-gradient(160deg,var(--navy) 0%,var(--navy-deep) 100%);
+         color:#fff;border-bottom:4px solid var(--gold);padding:24px 0 22px;margin-bottom:22px}
   header .wrap{padding-bottom:0}
-  header h1{font-size:21px;font-weight:600;margin:0}
-  header p{margin:2px 0 0;font-size:14px;opacity:.85}
-  header a{color:#fff}
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand img{width:52px;height:52px;object-fit:contain;flex:none}
+  .brand h1{font-size:23px;font-weight:700;margin:0;letter-spacing:-.01em}
+  .brand p{margin:2px 0 0;font-size:14px;color:#BFD0EE}
+  .brand a{color:#FFDD7A;text-decoration:none;font-weight:500}
+  .brand a:hover{text-decoration:underline}
 
-  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px}
-  .stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
-  .stat b{display:block;font-size:26px;font-weight:600;line-height:1.2}
+  /* ---------- ตัวเลขสรุป ---------- */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;
+        box-shadow:0 1px 2px rgba(11,42,91,.05)}
+  .stat b{display:block;font-size:30px;font-weight:700;line-height:1.15;color:var(--navy)}
   .stat span{font-size:13px;color:var(--muted)}
+  .stat.lead{background:var(--navy);border-color:var(--navy)}
+  .stat.lead b{color:var(--gold)}
+  .stat.lead span{color:#BFD0EE}
+  .stat.rooms b{font-size:15px;font-weight:500;color:var(--ink);line-height:1.7}
 
-  .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
-  .toolbar input,.toolbar select{padding:9px 12px;border:1px solid var(--line);border-radius:8px;
-       font-family:inherit;font-size:15px;background:#fff}
-  .toolbar input{flex:1;min-width:180px}
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+  .toolbar input,.toolbar select{padding:11px 13px;border:1px solid var(--line);border-radius:10px;
+       font-family:inherit;font-size:15px;background:#fff;color:var(--ink)}
+  .toolbar input{flex:1;min-width:200px}
+  .toolbar input:focus,.toolbar select:focus{outline:none;border-color:var(--blue);
+       box-shadow:0 0 0 3px rgba(26,79,180,.15)}
 
-  .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:12px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;
+        margin-bottom:14px;box-shadow:0 1px 2px rgba(11,42,91,.05)}
+  .card.urgent{border-left:4px solid var(--gold)}
   .head{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
-  .id{font-weight:600}
-  .room{font-size:17px;font-weight:600;margin:4px 0 2px}
-  .detail{margin:6px 0}
+  .id{font-weight:700;color:var(--navy)}
+  .room{font-size:18px;font-weight:600;margin:5px 0 2px}
+  .detail{margin:8px 0}
   .meta{font-size:13px;color:var(--muted)}
-  .badge{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;color:#fff;white-space:nowrap}
-  .b-wait{background:var(--wait)} .b-doing{background:var(--doing)} .b-hold{background:var(--hold)}
-  .b-done{background:var(--done)} .b-cancel{background:var(--cancel)}
-  .sev{font-weight:600;color:var(--wait)}
+  .sevtag{font-weight:600;color:var(--gold-deep)}
+  .badge{font-size:12px;font-weight:700;padding:4px 11px;border-radius:999px;color:#fff;white-space:nowrap}
+  .b-wait{background:var(--gold);color:#4A3600} .b-doing{background:var(--doing)}
+  .b-hold{background:var(--hold)} .b-done{background:var(--done)} .b-cancel{background:var(--cancel)}
 
-  .edit{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);
-        display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .edit select,.edit input{padding:9px 11px;border:1px solid var(--line);border-radius:8px;
-        font-family:inherit;font-size:15px;width:100%;background:#fff}
+  .edit{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);
+        display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .edit select,.edit input{padding:11px 12px;border:1px solid var(--line);border-radius:10px;
+        font-family:inherit;font-size:15px;width:100%;background:#fff;color:var(--ink)}
+  .edit select:focus,.edit input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,79,180,.15)}
   .edit .full{grid-column:1 / -1}
-  button{font-family:inherit;font-weight:600;border-radius:8px;cursor:pointer;border:1px solid transparent;
-        background:var(--primary);color:#fff;padding:10px 18px;font-size:15px}
-  button:hover{background:var(--primary-dark)}
+  button{font-family:inherit;font-weight:600;border-radius:10px;cursor:pointer;border:1px solid transparent;
+        background:var(--blue);color:#fff;padding:11px 20px;font-size:15px}
+  button:hover{background:var(--blue-dark)}
   button:disabled{background:var(--cancel);cursor:progress}
-  a.photo{font-size:14px}
+  a.photo{font-size:14px;color:var(--blue);font-weight:500}
   .empty,.loading{color:var(--muted)}
-  .msg{padding:12px 14px;border-radius:8px;margin-bottom:14px;background:#E4F1EB;border:1px solid #A9CFBE;color:#12503A}
-  .msg.err{background:#FBE9E7;border-color:#E4B2AE;color:var(--danger)}
+  .msg{padding:14px 16px;border-radius:12px;margin-bottom:16px;background:#EAF6F0;border:1px solid #A6D5BE;color:#0D5C3F}
+  .msg.err{background:#FDECEA;border-color:#EFB6B0;color:var(--danger)}
 
-  .gate{position:fixed;inset:0;background:var(--paper);display:flex;align-items:center;justify-content:center;padding:20px;z-index:9}
-  .gate .box{background:#fff;border:1px solid var(--line);border-radius:12px;padding:24px;max-width:380px;width:100%}
-  .gate h2{margin:0 0 6px;font-size:18px}
-  .gate p{margin:0 0 14px;font-size:14px;color:var(--muted)}
-  .gate input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;
-              font-family:inherit;font-size:16px;margin-bottom:12px}
-  .gate button{width:100%}
+  .gate{position:fixed;inset:0;background:linear-gradient(160deg,var(--navy) 0%,var(--navy-deep) 100%);
+        display:flex;align-items:center;justify-content:center;padding:20px;z-index:9}
+  .gate .box{background:#fff;border-radius:16px;padding:28px;max-width:400px;width:100%;
+             border-top:5px solid var(--gold);text-align:center}
+  .gate img{width:64px;height:64px;object-fit:contain;margin-bottom:12px}
+  .gate h2{margin:0 0 6px;font-size:19px}
+  .gate p{margin:0 0 18px;font-size:14px;color:var(--muted)}
+  .gate input{width:100%;padding:13px;border:1px solid var(--line);border-radius:10px;
+              font-family:inherit;font-size:16px;margin-bottom:12px;text-align:center}
+  .gate input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,79,180,.15)}
+  .gate button{width:100%;padding:14px}
   .hidden{display:none}
+
+  @media (max-width:520px){ .edit{grid-template-columns:1fr} }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 
 <div class="gate" id="gate">
   <div class="box">
+    <img src="logo.png" alt="" onerror="this.style.display='none'">
     <h2>คิวงานซ่อมอุปกรณ์สื่อ</h2>
-    <p>หน้านี้สำหรับครูผู้ดูแลงานโสตทัศนูปกรณ์ กรอกรหัสเพื่อเข้าใช้งาน</p>
+    <p>หน้านี้สำหรับครูผู้ดูแลงานโสตทัศนูปกรณ์</p>
     <input type="password" id="pin" placeholder="รหัสผู้ดูแล" onkeydown="if(event.key==='Enter')login()">
     <button onclick="login()" id="loginBtn">เข้าสู่ระบบ</button>
-    <p id="gateErr" style="color:var(--danger);margin-top:10px"></p>
+    <p id="gateErr" style="color:var(--danger);margin:12px 0 0"></p>
   </div>
 </div>
 
 <div id="app" class="hidden">
   <header>
     <div class="wrap">
-      <h1>คิวงานซ่อมอุปกรณ์สื่อ</h1>
-      <p><a href="index.html">ไปหน้าแจ้งซ่อม</a></p>
+      <div class="brand">
+        <img src="logo.png" alt="" onerror="this.style.display='none'">
+        <div>
+          <h1>คิวงานซ่อมอุปกรณ์สื่อ</h1>
+          <p>โรงเรียนเบญจมราชรังสฤษฎิ์ ๒ · <a href="index.html">ไปหน้าแจ้งซ่อม</a></p>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -169,12 +201,12 @@
 
   function renderStats(s){
     document.getElementById('stats').innerHTML =
-      stat(s.open, 'งานค้างทั้งหมด') +
+      '<div class="stat lead"><b>' + s.open + '</b><span>งานค้างทั้งหมด</span></div>' +
       stat(s.byStatus['รอดำเนินการ'] || 0, 'รอดำเนินการ') +
       stat(s.byStatus['กำลังดำเนินการ'] || 0, 'กำลังดำเนินการ') +
       stat(s.byStatus['เสร็จสิ้น'] || 0, 'ซ่อมเสร็จแล้ว') +
-      (s.topRooms.length ? '<div class="stat"><b style="font-size:15px">' +
-        s.topRooms.map(function(r){ return r.room + ' (' + r.count + ')'; }).join('<br>') +
+      (s.topRooms.length ? '<div class="stat rooms"><b>' +
+        s.topRooms.map(function(r){ return 'ห้อง ' + r.room + ' — ' + r.count + ' ครั้ง'; }).join('<br>') +
         '</b><span>ห้องที่แจ้งบ่อยที่สุด</span></div>' : '');
   }
   function stat(n, label){ return '<div class="stat"><b>' + n + '</b><span>' + label + '</span></div>'; }
@@ -202,11 +234,12 @@
       var opts = STATUSES.map(function(s){
         return '<option value="' + s + '"' + (s === t.status ? ' selected' : '') + '>' + s + '</option>';
       }).join('');
-      return '<div class="card">' +
+      var urgent = (t.severity === 'ใช้งานไม่ได้เลย' && t.status === 'รอดำเนินการ') ? ' urgent' : '';
+      return '<div class="card' + urgent + '">' +
         '<div class="head"><span class="id">' + t.id + '</span>' +
         '<span class="badge ' + badgeClass(t.status) + '">' + t.status + '</span></div>' +
         '<div class="room">ห้อง ' + (t.roomCode ? t.roomCode + ' ' : '') + t.roomName + '</div>' +
-        '<div class="meta">' + t.items + ' • <span class="sev">' + t.severity + '</span></div>' +
+        '<div class="meta">' + t.items + ' • <span class="sevtag">' + t.severity + '</span></div>' +
         '<p class="detail">' + t.detail + '</p>' +
         (t.photoUrl ? '<a class="photo" href="' + t.photoUrl + '" target="_blank" rel="noopener">ดูรูปที่แนบมา</a><br>' : '') +
         '<div class="meta">แจ้งโดย ' + t.reporterName + (t.phone ? ' (' + t.phone + ')' : '') + ' • ' + t.reportedAt + '</div>' +
