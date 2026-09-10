@@ -229,16 +229,39 @@
   var ROOMS = [], TEACHERS = [], EQUIP = [], BUILDINGS = [], PHOTO = null;
   var ME = localStorage.getItem('ben2_repair_teacher') || '';
 
+  // เรียกข้อมูลด้วย fetch ก่อน ถ้าเบราว์เซอร์บล็อกจึงถอยไปใช้ JSONP
   function apiGet(action, params, done, fail){
-    var cb = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-    var qs = ['action=' + encodeURIComponent(action), 'callback=' + cb];
+    var qs = ['action=' + encodeURIComponent(action)];
     Object.keys(params || {}).forEach(function(k){ qs.push(k + '=' + encodeURIComponent(params[k])); });
+    var url = API_URL + '?' + qs.join('&');
+
+    fetch(url)
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if (res.ok) done(res.data);
+        else if (fail) fail(new Error(res.error));
+      })
+      .catch(function(){ jsonp(url, done, fail); });
+  }
+
+  function jsonp(url, done, fail){
+    var cb = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
     var s = document.createElement('script');
-    var timer = setTimeout(function(){ cleanup(); fail && fail(new Error('เชื่อมต่อไม่สำเร็จ ลองใหม่อีกครั้ง')); }, 20000);
-    function cleanup(){ clearTimeout(timer); delete window[cb]; s.remove(); }
-    window[cb] = function(res){ cleanup(); res.ok ? done(res.data) : (fail && fail(new Error(res.error))); };
-    s.src = API_URL + '?' + qs.join('&');
-    s.onerror = function(){ cleanup(); fail && fail(new Error('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้')); };
+    var timer = setTimeout(function(){
+      cleanup();
+      if (fail) fail(new Error('เชื่อมต่อไม่สำเร็จ ลองรีเฟรชหน้าอีกครั้ง'));
+    }, 30000);
+    function cleanup(){ clearTimeout(timer); delete window[cb]; if (s.parentNode) s.remove(); }
+    window[cb] = function(res){
+      cleanup();
+      if (res.ok) done(res.data);
+      else if (fail) fail(new Error(res.error));
+    };
+    s.src = url + '&callback=' + cb;
+    s.onerror = function(){
+      cleanup();
+      if (fail) fail(new Error('เบราว์เซอร์บล็อกการเชื่อมต่อ ลองปิดส่วนขยายบล็อกโฆษณา หรือเปิดด้วยเบราว์เซอร์อื่น'));
+    };
     document.body.appendChild(s);
   }
 
