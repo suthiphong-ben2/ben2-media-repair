@@ -226,7 +226,7 @@
 
 <script src="config.js"></script>
 <script>
-  var ROOMS = [], TEACHERS = [], EQUIP = [], BUILDINGS = [], PHOTO = null;
+  var ROOMS = [], TEACHERS = [], EQUIP = [], BUILDINGS = [], EQ_ORDER = [], PHOTO = null;
   var ME = localStorage.getItem('ben2_repair_teacher') || '';
 
   // เรียกข้อมูลด้วย fetch ก่อน ถ้าเบราว์เซอร์บล็อกจึงถอยไปใช้ JSONP
@@ -277,7 +277,8 @@
   }
 
   apiGet('bootstrap', {}, function(d){
-    ROOMS = d.rooms; TEACHERS = d.teachers; EQUIP = d.equipment; BUILDINGS = d.buildings || [];
+    ROOMS = d.rooms; TEACHERS = d.teachers; EQUIP = d.equipment;
+    BUILDINGS = d.buildings || []; EQ_ORDER = d.eqOrder || [];
     filterRooms(); renderChips(null); fillTeachers();
     if (!ME) openGate(); else showMe();
   }, fail);
@@ -335,7 +336,7 @@
     if (!v) return null;
     var p = v.split('|');
     return ROOMS.filter(function(r){ return r.code === p[0] && r.name === p[1]; })[0] ||
-           { code: p[0], name: p[1], building: '', program: '', caretakers: [], has: {} };
+           { code: p[0], name: p[1], building: '', program: '', caretakers: [], eq: '' };
   }
 
   function buildingOf(code){
@@ -375,9 +376,16 @@
     box.style.display = html ? 'block' : 'none';
   }
 
+  function eqState(room, name){
+    if (!room || !room.eq) return '';
+    var i = EQ_ORDER.indexOf(name);
+    if (i === -1) return '';
+    return { '0': 'ไม่มี', '1': 'มี', '2': 'ชำรุด' }[room.eq.charAt(i)] || '';
+  }
+
   function renderChips(room){
     document.getElementById('items').innerHTML = EQUIP.map(function(e){
-      var state = room && room.has ? room.has[e] : '';
+      var state = eqState(room, e);
       if (state === 'ไม่มี' && e !== 'อื่น ๆ') return '';
       var broken = (state === 'ชำรุด') ? ' broken' : '';
       return '<label class="chip' + broken + '"><input type="checkbox" value="' + e + '"><span>' + e + '</span></label>';

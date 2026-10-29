@@ -103,6 +103,30 @@
   .owner .nm{font-size:14px;font-weight:600}
   .owner .role{font-size:12px;color:var(--muted)}
 
+  .toolbar .ghost{background:#fff;border:1px solid var(--line);color:var(--navy);padding:11px 16px;font-size:15px}
+  .toolbar .ghost:hover{background:#F4F7FD;border-color:var(--blue);color:var(--blue)}
+
+  /* ---------- รายงานสำหรับพิมพ์ ---------- */
+  #report{background:#fff;padding:28px 30px;border:1px solid var(--line);border-radius:var(--radius);margin-top:4px}
+  #report h2{font-size:20px;margin:0 0 2px;text-align:center}
+  #report .sub{text-align:center;font-size:14px;color:var(--muted);margin-bottom:4px}
+  #report .filters{text-align:center;font-size:14px;margin-bottom:18px}
+  #report table{width:100%;border-collapse:collapse;font-size:13px}
+  #report th,#report td{border:1px solid #BFC8DC;padding:6px 8px;vertical-align:top;text-align:left}
+  #report th{background:#EDF1F9;font-weight:600}
+  #report .totals{margin:0 0 16px;font-size:14px}
+  #report .sign{margin-top:42px;text-align:right;font-size:14px;line-height:2.2}
+
+  @media print{
+    @page{size:A4 landscape;margin:14mm}
+    body{background:#fff}
+    header,.stats,.toolbar,#list,footer,#alert,.gate{display:none!important}
+    #report{display:block!important;border:0;padding:0;margin:0}
+    #report table{font-size:11px}
+    #report tr{break-inside:avoid}
+    .wrap{max-width:none;padding:0}
+  }
+
   @media (max-width:520px){ .edit{grid-template-columns:1fr} }
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -145,9 +169,12 @@
         <option value="open">เฉพาะงานค้าง</option>
         <option value="">ทั้งหมด</option>
       </select>
+      <button class="ghost" onclick="exportCsv()">ส่งออก CSV</button>
+      <button class="ghost" onclick="printReport()">พิมพ์รายงาน</button>
     </div>
 
     <div id="list" class="loading">กำลังโหลดคิวงาน…</div>
+    <div id="report" class="hidden"></div>
 
     <footer>
       <b>พัฒนาระบบโดย ครูสุทธิพงษ์ สุขสร้อย</b>
@@ -158,7 +185,8 @@
 
 <script src="config.js"></script>
 <script>
-  var TICKETS = [], STATUSES = [], BUILDINGS = [], PHOTOS = {}, PIN = sessionStorage.getItem('ben2_repair_pin') || '';
+  var TICKETS = [], VISIBLE = [], STATUSES = [], BUILDINGS = [], PHOTOS = {},
+      PIN = sessionStorage.getItem('ben2_repair_pin') || '';
 
   function apiPost(body, done, fail){
     body.pin = PIN;
@@ -273,6 +301,7 @@
               t.detail + ' ' + t.reporterName).toLowerCase().indexOf(q) !== -1;
     });
 
+    VISIBLE = list;
     var box = document.getElementById('list');
     box.className = '';
     if (!list.length) { box.innerHTML = '<p class="empty">ไม่มีงานตรงกับเงื่อนไขนี้</p>'; return; }
@@ -300,6 +329,94 @@
           '<div class="full"><button onclick="save(\'' + t.id + '\', this)">บันทึกการอัปเดต</button></div>' +
         '</div></div>';
     }).join('');
+  }
+
+  // ---------- ส่งออกและพิมพ์รายงาน ----------
+  function buildingName(code){
+    var b = BUILDINGS.filter(function(x){ return x.code === String(code); })[0];
+    return b ? (b.name || 'อาคาร ' + b.code) : (code ? 'อาคาร ' + code : '');
+  }
+
+  function filterText(){
+    var yearSel = document.getElementById('fyear');
+    var year = yearSel.options[yearSel.selectedIndex] ? yearSel.options[yearSel.selectedIndex].text : '';
+    var bld = document.getElementById('fbuilding').value;
+    var mode = document.getElementById('fstatus').value;
+    var q = document.getElementById('q').value.trim();
+    var parts = [year || 'ทุกปีการศึกษา', bld ? buildingName(bld) : 'ทุกอาคาร',
+                 mode === 'open' ? 'เฉพาะงานค้าง' : 'ทุกสถานะ'];
+    if (q) parts.push('คำค้น "' + q + '"');
+    return parts.join(' · ');
+  }
+
+  function fileStamp(){
+    var d = new Date();
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  }
+
+  function thaiDate(){
+    var d = new Date();
+    var m = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
+             'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+    return d.getDate() + ' ' + m[d.getMonth()] + ' ' + (d.getFullYear() + 543);
+  }
+
+  function exportCsv(){
+    if (!VISIBLE.length) return alert('ไม่มีรายการให้ส่งออก');
+    var head = ['เลขที่งาน','วันเวลาที่แจ้ง','ปีการศึกษา','อาคาร','เลขห้อง','ชื่อห้อง','อุปกรณ์',
+                'ความเร่งด่วน','อาการ','ผู้แจ้ง','เบอร์ติดต่อ','สถานะ','ผู้รับผิดชอบ',
+                'บันทึกการซ่อม','อัปเดตล่าสุด','วันที่ปิดงาน','ลิงก์รูปภาพ'];
+    var rows = VISIBLE.map(function(t){
+      return [t.id, t.reportedAt, t.year, buildingName(t.building), t.roomCode, t.roomName, t.items,
+              t.severity, t.detail, t.reporterName, t.phone, t.status, t.assignee,
+              t.note, t.updatedAt, t.closedAt, t.photoUrl];
+    });
+    var csv = [head].concat(rows).map(function(r){
+      return r.map(function(v){ return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; }).join(',');
+    }).join('\r\n');
+
+    // ใส่ BOM เพื่อให้ Excel อ่านภาษาไทยได้ถูกต้อง
+    var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'แจ้งซ่อมอุปกรณ์สื่อ-' + fileStamp() + '.csv';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }
+
+  function printReport(){
+    if (!VISIBLE.length) return alert('ไม่มีรายการให้พิมพ์');
+    var count = {};
+    VISIBLE.forEach(function(t){ count[t.status] = (count[t.status] || 0) + 1; });
+    var totals = Object.keys(count).map(function(k){ return k + ' ' + count[k] + ' รายการ'; }).join(' · ');
+
+    var rows = VISIBLE.map(function(t, i){
+      return '<tr><td>' + (i + 1) + '</td><td>' + t.id + '</td><td>' + t.reportedAt + '</td>' +
+        '<td>' + buildingName(t.building) + '<br>' + (t.roomCode ? 'ห้อง ' + t.roomCode + ' ' : '') + esc(t.roomName) + '</td>' +
+        '<td>' + esc(t.items) + '</td><td>' + esc(t.detail) + '</td>' +
+        '<td>' + esc(t.reporterName) + '</td><td>' + esc(t.assignee) + '</td>' +
+        '<td>' + t.status + (t.note ? '<br>' + esc(t.note) : '') + '</td></tr>';
+    }).join('');
+
+    document.getElementById('report').innerHTML =
+      '<h2>รายงานสรุปการแจ้งซ่อมอุปกรณ์สื่อ</h2>' +
+      '<div class="sub">ห้องเรียนและห้องปฏิบัติการ โรงเรียนเบญจมราชรังสฤษฎิ์ ๒</div>' +
+      '<div class="filters">' + filterText() + ' — พิมพ์เมื่อ ' + thaiDate() + '</div>' +
+      '<p class="totals"><b>รวม ' + VISIBLE.length + ' รายการ</b> (' + totals + ')</p>' +
+      '<table><thead><tr><th>ที่</th><th>เลขที่งาน</th><th>วันที่แจ้ง</th><th>สถานที่</th>' +
+      '<th>อุปกรณ์</th><th>อาการ</th><th>ผู้แจ้ง</th><th>ผู้รับผิดชอบ</th><th>สถานะ / บันทึก</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody></table>' +
+      '<div class="sign">ลงชื่อ ............................................ ผู้รายงาน<br>' +
+      '( ครูสุทธิพงษ์ สุขสร้อย )<br><br>' +
+      'ลงชื่อ ............................................ ผู้อำนวยการโรงเรียน</div>';
+
+    document.getElementById('report').classList.remove('hidden');
+    window.print();
+    setTimeout(function(){ document.getElementById('report').classList.add('hidden'); }, 500);
+  }
+
+  function esc(s){
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
   function ownerBlock(names){
